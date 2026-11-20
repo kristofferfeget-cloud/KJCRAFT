@@ -26,28 +26,57 @@ $Home2 = Join-Path $env:LOCALAPPDATA "CraftPath"
 $ProgressPreference = "SilentlyContinue"
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch {}
 
-function Find-AddOns {
-  $candidates = @()
+# Plain string/.NET path helpers: Join-Path and Test-Path throw for drives that do not exist (e.g. no D:).
+function Test-Dir([string]$Path) {
+  if (-not $Path) { return $false }
+  try { return [IO.Directory]::Exists($Path) } catch { return $false }
+}
+function Join-Str([string]$A, [string]$B) { return ($A.TrimEnd('\') + '\' + $B.TrimStart('\')) }
+
+# All folders that might be "World of Warcraft" on this PC
+function Get-WowDirs {
+  $dirs = New-Object System.Collections.Generic.List[string]
   foreach ($key in @("HKLM:\SOFTWARE\WOW6432Node\Blizzard Entertainment\World of Warcraft", "HKLM:\SOFTWARE\Blizzard Entertainment\World of Warcraft")) {
     try {
       $p = (Get-ItemProperty -Path $key -ErrorAction Stop).InstallPath
-      if ($p) { $candidates += (Join-Path (Split-Path $p.TrimEnd('\') -Parent) "_forever_\Interface\AddOns") }
+      if ($p) { $dirs.Add([IO.Path]::GetDirectoryName($p.TrimEnd('\'))) }
     } catch {}
   }
-  $roots = @("${env:ProgramFiles(x86)}\World of Warcraft", "$env:ProgramFiles\World of Warcraft", "C:\World of Warcraft", "C:\Games\World of Warcraft",
-             "D:\World of Warcraft", "D:\Games\World of Warcraft", "E:\World of Warcraft", "E:\Games\World of Warcraft")
-  foreach ($r in $roots) { $candidates += (Join-Path $r "_forever_\Interface\AddOns") }
-  foreach ($c in $candidates) { if ($c -and (Test-Path $c)) { return $c } }
-  foreach ($c in $candidates) {
-    $parent = Split-Path (Split-Path $c -Parent) -Parent  # ...\_forever_
-    if ($parent -and (Test-Path $parent)) { New-Item -ItemType Directory -Force -Path $c | Out-Null; return $c }
+  $drives = @()
+  try { $drives = @([IO.DriveInfo]::GetDrives() | Where-Object { $_.IsReady -and $_.DriveType -eq 'Fixed' } | ForEach-Object { $_.RootDirectory.FullName }) } catch {}
+  if ($drives.Count -eq 0) { $drives = @("C:\") }
+  $subs = @("World of Warcraft", "Games\World of Warcraft", "Program Files (x86)\World of Warcraft", "Program Files\World of Warcraft",
+            "Blizzard\World of Warcraft", "Games\Blizzard\World of Warcraft", "Battle.net\World of Warcraft", "Spill\World of Warcraft")
+  foreach ($d in $drives) { foreach ($s in $subs) { $dirs.Add((Join-Str $d $s)) } }
+  return @($dirs | Where-Object { Test-Dir $_ } | Select-Object -Unique)
+}
+
+function Find-AddOns {
+  $wow = Get-WowDirs
+  foreach ($w in $wow) { $c = Join-Str $w "_forever_\Interface\AddOns"; if (Test-Dir $c) { return $c } }
+  foreach ($w in $wow) {
+    if (Test-Dir (Join-Str $w "_forever_")) {
+      $c = Join-Str $w "_forever_\Interface\AddOns"
+      New-Item -ItemType Directory -Force -Path $c | Out-Null
+      return $c
+    }
   }
   return $null
 }
 
+# Accept the AddOns folder itself, the _forever_ folder or the World of Warcraft folder
+function Resolve-AddOns([string]$Path) {
+  $Path = $Path.Trim().Trim('"').TrimEnd('\')
+  foreach ($c in @($Path, (Join-Str $Path "Interface\AddOns"), (Join-Str $Path "_forever_\Interface\AddOns"))) {
+    if (Test-Dir $c) { return $c }
+  }
+  if (Test-Dir (Join-Str $Path "Interface")) { $c = Join-Str $Path "Interface\AddOns"; New-Item -ItemType Directory -Force -Path $c | Out-Null; return $c }
+  return $null
+}
+
 function Update-Once([string]$Dir) {
-  $target = Join-Path $Dir "CraftPath"
-  if (-not (Test-Path (Join-Path $target "CraftPath.toc"))) {
+  $target = Join-Str $Dir "CraftPath"
+  if (-not (Test-Path -LiteralPath (Join-Str $target "CraftPath.toc"))) {
     Write-Host "Installing CraftPath into $Dir ..."
     $zip = Join-Path $env:TEMP "CraftPath.zip"
     Invoke-WebRequest -UseBasicParsing -Uri "$Base/addon/CraftPath.zip$Query" -OutFile $zip
@@ -60,7 +89,7 @@ function Update-Once([string]$Dir) {
   Invoke-WebRequest -UseBasicParsing -Uri "$Base/addon/Data.lua$Query" -OutFile $tmp
   $head = Get-Content -Path $tmp -TotalCount 1
   if ($head -notlike "-- CraftPath data*") { throw "Unexpected download - Data.lua was not replaced." }
-  Move-Item -Path $tmp -Destination (Join-Path $target "Data.lua") -Force
+  Move-Item -Path $tmp -Destination (Join-Str $target "Data.lua") -Force
   Write-Host ("{0:HH:mm}  Data.lua updated. Type /reload in game to load it." -f (Get-Date))
 }
 
@@ -70,11 +99,19 @@ if ($Uninstall) {
   return
 }
 
-if (-not $AddOns) { $AddOns = Find-AddOns }
-if (-not $AddOns -or -not (Test-Path $AddOns)) {
-  Write-Host "Could not find World of Warcraft\_forever_\Interface\AddOns."
-  Write-Host "Run it again with the folder, for example:  -AddOns 'D:\Games\World of Warcraft\_forever_\Interface\AddOns'"
-  exit 1
+if ($AddOns) { $AddOns = Resolve-AddOns $AddOns } else { $AddOns = Find-AddOns }
+if (-not $AddOns) {
+  Write-Host "Could not find the WoW Forever AddOns folder (World of Warcraft\_forever_\Interface\AddOns)." -ForegroundColor Yellow
+  $found = @(Get-WowDirs)
+  if ($found.Count -eq 0) { Write-Host "  No World of Warcraft folder in the usual places on any drive." }
+  foreach ($w in $found) {
+    $flav = @()
+    try { $flav = @(Get-ChildItem -LiteralPath $w -Directory -ErrorAction Stop | Where-Object { $_.Name -like "_*_" } | ForEach-Object { $_.Name }) } catch {}
+    Write-Host ("  Found WoW here: {0}   ({1})" -f $w, ($(if ($flav.Count) { $flav -join ", " } else { "no game folders" })))
+  }
+  Write-Host "Run it again and point it at your folder, for example:"
+  Write-Host ('  powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm ''' + $Base + '/addon/update.ps1' + $Query + '''))) -Install -AddOns ''C:\Games\World of Warcraft\_forever_\Interface\AddOns''"')
+  return
 }
 
 if ($Install) {
@@ -88,7 +125,12 @@ if ($Install) {
   $logon = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
   $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 5)
   $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
-  Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger @($repeat, $logon) -Settings $settings -Principal $principal -Description "Downloads fresh CraftPath route data from $Base" -Force | Out-Null
+  try {
+    Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger @($repeat, $logon) -Settings $settings -Principal $principal -Description "Downloads fresh CraftPath route data from $Base" -Force -ErrorAction Stop | Out-Null
+  } catch {
+    # some PCs only allow the log-on trigger as administrator - the 30-minute trigger alone is enough
+    Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $repeat -Settings $settings -Principal $principal -Description "Downloads fresh CraftPath route data from $Base" -Force -ErrorAction Stop | Out-Null
+  }
   Write-Host "Done. CraftPath data updates every $Minutes minutes in the background ($AddOns\CraftPath\Data.lua)."
   Write-Host "Remove it later with -Uninstall."
   return
