@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SLUGS, EXTRA_IDS, buildRecipes, neededIds, compute } from './src/model.js';
 import { fetchSeemeta, fetchPrices } from './src/sources.js';
+import { buildDataLua, buildZip } from './src/addon.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = +process.env.PORT || 3000;
@@ -32,7 +33,7 @@ const state = {
 function pack(p) {
   const json = JSON.stringify(p);
   const body = Buffer.from(json);
-  return { body, gz: gzipSync(body), etag: '"' + createHash('sha1').update(json).digest('hex').slice(0, 20) + '"' };
+  return { body, gz: gzipSync(body), etag: '"' + createHash('sha1').update(json).digest('hex').slice(0, 20) + '"', payload: p };
 }
 function setPayload(p) {
   const pk = pack(p);
@@ -41,6 +42,7 @@ function setPayload(p) {
   state.gz = pk.gz;
   state.etag = pk.etag;
   state.variants.clear();
+  addonCache.clear();
 }
 
 // Read filter settings from the query string, clamped to sane ranges.
@@ -141,6 +143,45 @@ async function refresh() {
   }
 }
 
+// ---------- addon downloads ----------
+const ADDON_FILES = ['CraftPath.toc', 'Core.lua', 'UI.lua', 'README.txt'];
+const addonSrc = {};
+const scripts = {};
+const addonCache = new Map();
+async function loadAddon() {
+  for (const f of ADDON_FILES) addonSrc[f] = await readFile(path.join(ROOT, 'addon', 'CraftPath', f));
+  for (const f of ['update.ps1', 'update.sh']) scripts[f] = await readFile(path.join(ROOT, 'addon', f), 'utf8');
+}
+function baseUrl(req) {
+  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/$/, '');
+  const proto = (req.headers['x-forwarded-proto'] || 'http').split(',')[0].trim();
+  return `${proto}://${req.headers['x-forwarded-host'] || req.headers.host}`;
+}
+function filterQuery(f) {
+  return sameFilters(f, DEFAULT_FILTERS) ? '' : `?minSold=${f.minSold}&minListed=${f.minListed}&cut=${f.cut}`;
+}
+// The route payload for a request's filters (default payload when filters can't be applied yet).
+function payloadFor(filters) {
+  if (state.raw && state.recipes && !sameFilters(filters, DEFAULT_FILTERS)) {
+    try { return variantFor(filters); } catch (e) { log('filter compute failed:', e.message); }
+  }
+  return { body: state.body, gz: state.gz, etag: state.etag, payload: state.payload };
+}
+function addonBuild(kind, v, base) {
+  const key = `${kind}|${v.etag}|${base}`;
+  let hit = addonCache.get(key);
+  if (!hit) {
+    const lua = buildDataLua(v.payload, base);
+    const body = kind === 'zip'
+      ? buildZip([...ADDON_FILES.map((f) => ({ name: `CraftPath/${f}`, data: addonSrc[f] })), { name: 'CraftPath/Data.lua', data: lua }])
+      : Buffer.from(lua);
+    hit = { body, gz: kind === 'zip' ? null : gzipSync(body), etag: '"' + kind + '-' + v.etag.replace(/"/g, '') + '"' };
+    addonCache.set(key, hit);
+    if (addonCache.size > 30) addonCache.delete(addonCache.keys().next().value);
+  }
+  return hit;
+}
+
 // ---------- static files ----------
 const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.txt': 'text/plain; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8' };
 const STATIC = new Map();
@@ -186,6 +227,22 @@ const server = http.createServer((req, res) => {
     });
   }
   if (url.pathname === '/health') return sendJSON(req, res, 200, { ok: true });
+  if (url.pathname === '/addon/Data.lua' || url.pathname === '/addon/CraftPath.zip') {
+    if (!state.payload) return sendJSON(req, res, 503, { error: 'Data is not ready yet' });
+    const zip = url.pathname.endsWith('.zip');
+    const v = payloadFor(readFilters(url));
+    const hit = addonBuild(zip ? 'zip' : 'lua', v, baseUrl(req));
+    return send(req, res, 200, {
+      body: hit.body, gz: hit.gz, etag: hit.etag,
+      type: zip ? 'application/zip' : 'text/plain; charset=utf-8',
+      extra: { 'content-disposition': `attachment; filename="${zip ? 'CraftPath.zip' : 'Data.lua'}"`, 'access-control-allow-origin': '*' }
+    });
+  }
+  if (url.pathname === '/addon/update.ps1' || url.pathname === '/addon/update.sh') {
+    const name = url.pathname.slice(7);
+    const text = scripts[name].replaceAll('__BASE__', baseUrl(req)).replaceAll('__QUERY__', filterQuery(readFilters(url)));
+    return send(req, res, 200, { body: Buffer.from(text), type: 'text/plain; charset=utf-8', extra: { 'content-disposition': `inline; filename="${name}"` } });
+  }
   const f = STATIC.get(url.pathname);
   if (f) return send(req, res, 200, f);
   res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
@@ -193,6 +250,7 @@ const server = http.createServer((req, res) => {
 });
 
 await loadStatic();
+await loadAddon();
 await boot();
 server.listen(PORT, () => log(`listening on :${PORT} (market ${MARKET}, refresh every ${REFRESH_MINUTES} min${OFFLINE ? ', OFFLINE' : ''})`));
 

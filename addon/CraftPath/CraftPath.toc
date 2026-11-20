@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: |cffb48effCraft|rPath
+## Notes: Levelling routes 1-300 for every profession in WoW: Forever, with live AH prices, mats and gold tips. Data from the website.
+## Author: Kj
+## Version: 2.0.0
+## SavedVariables: CraftPathDB
+## SavedVariablesPerCharacter: CraftPathCharDB
+## IconTexture: Interface\Icons\Trade_Tailoring
+## AddonCompartmentFunc: CraftPath_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: CraftPath_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: CraftPath_OnAddonCompartmentLeave
+
+Data.lua
+Core.lua
+UI.lua

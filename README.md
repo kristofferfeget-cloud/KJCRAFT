@@ -9,6 +9,18 @@ A website that shows the cheapest way from 1 to 300 in every profession in **WoW
 - Separate pages for Herbalism, Mining, Skinning and Fishing.
 - Filters for realistic gold costs: ignore AH items that sell fewer than X per day or have fewer than Y listed, choose a 5% (faction) or 15% (neutral) AH cut. Sales always use the better of AH price (after the cut) and vendor price.
 
+## WoW addon (CraftPath)
+
+`addon/CraftPath` is an in-game addon that shows the same routes: it reads your skill, shows the next recipe, mats left (counting bags and bank), gold tips and a mini tracker for all eight professions.
+
+WoW addons cannot make web requests, so the addon reads `Data.lua`, which the server generates from the live routes:
+
+- `/addon/CraftPath.zip` – the whole addon with fresh data
+- `/addon/Data.lua` – just the data file
+- `/addon/update.ps1` (Windows) and `/addon/update.sh` (macOS/Linux) – an updater that downloads a fresh `Data.lua` every 30 minutes. In game, `/reload` loads it.
+
+All of them take the same filter parameters as `/api/data`. The website's **WoW addon** page has the download and copy-paste commands. In game, `/cpath web` gives a link back to the route on the website with your skill filled in (`/#tailoring/152`).
+
 ## How it works
 
 `server.js` is a small Node server with no dependencies:
@@ -50,3 +62,4 @@ Runs on Railway (project `kjcraft`, service `web`, region EU West). Every push t
 - `/api/data` – routes and prices as JSON. Optional filters: `?minSold=3&minListed=5&cut=5` (cut is 5 or 15). Non-default filters are computed on demand and cached until the next price refresh.
 - `/api/status` – when prices were last fetched, and any errors
 - `/health` – health check
+- `/addon/CraftPath.zip`, `/addon/Data.lua`, `/addon/update.ps1`, `/addon/update.sh` – the addon and its updater

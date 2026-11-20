@@ -109,7 +109,7 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appear
 .seg button:hover{color:var(--ink)}
 .seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
 select{height:38px;border:1px solid var(--line);border-radius:9px;background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--ink);font:inherit;font-size:13.5px;padding:0 30px 0 11px;appearance:none;-webkit-appearance:none;cursor:pointer}
-.btn{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;background:var(--panel)}
+.btn{font-family:var(--f-ui);height:32px;padding:0 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px;background:var(--panel)}
 .btn:hover{background:var(--panel-2);color:var(--ink)}
 .btn svg{width:14px;height:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
@@ -237,6 +237,28 @@ dl.kv dd{margin:0}
 .gold .nm{font-weight:600}
 .empty{padding:22px 18px;color:var(--ink-3);font-size:14px}
 
+/* addon page */
+.ad-hero{display:flex;gap:18px;align-items:center;margin-bottom:22px}
+.ad-hero .ph-gl{background:#8b5cf6}
+.ad-hero p{margin:6px 0 0;color:var(--ink-2);max-width:680px}
+.ad-steps{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:14px;counter-reset:st}
+.ad-steps>li{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px 16px 58px;position:relative;counter-increment:st}
+.ad-steps>li::before{content:counter(st);position:absolute;left:18px;top:15px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--f-num);background:var(--ink);color:var(--panel)}
+.ad-steps h3{margin:0 0 6px;font-size:19px}
+.ad-steps p{margin:0 0 10px;color:var(--ink-2);font-size:14px}
+.ad-steps p:last-child{margin-bottom:0}
+.cmd{display:flex;align-items:center;gap:8px;margin:8px 0}
+.cmd code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font:500 12.5px var(--f-num);background:var(--sunk);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;color:var(--ink)}
+.cmd .btn{flex:none}
+.os{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:12px}
+.btn.primary{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.primary:hover{background:var(--ink-2);color:var(--panel)}
+.btn.lg{height:40px;padding:0 16px;font-size:14px}
+.ad-feat{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:22px}
+.ad-feat div{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 15px;font-size:13.5px;color:var(--ink-2)}
+.ad-feat b{display:block;color:var(--ink);font-size:14px;margin-bottom:3px}
+kbd{font:600 12px var(--f-num);background:var(--sunk);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+.top-r .btn{height:32px}
 details.filters{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:0 0 18px}
 details.filters summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 16px;font-size:13.5px;color:var(--ink-2)}
 details.filters summary::-webkit-details-marker{display:none}
@@ -376,6 +398,7 @@ footer p{margin:0 0 4px}
     <div><b>Profession Routes</b><span>WoW: Forever · 1–300</span></div>
   </a>
   <div class="top-r">
+    <a class="btn hide-s" href="#addon">WoW addon</a>
     <span class="chip" id="chip"><i></i>Prices</span>
     <button class="icon-btn" id="theme" type="button" aria-label="Toggle colour theme"></button>
   </div>
@@ -408,6 +431,7 @@ const ICON={
   mining:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l10-10"/><path d="M5 7.5C9 3.8 15.6 3.4 20.5 6.5c-3.6-.1-6.6 1.1-8.8 3.2"/><path d="M11.7 9.7l2.6 2.6"/></svg>',
   skinning:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l6.5-6.5"/><path d="M10.5 13.5L20 4c1.2 3.6.2 7-3 10.2L14 17z"/><path d="M8.2 15.8l2 2"/></svg>',
   fishing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3.5v10a5 5 0 0 1-10 0v-2.5l3 3"/><circle cx="15" cy="3" r="1"/></svg>',
+  addon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5h4v2.2a1.8 1.8 0 1 0 3.6 0V3.5H20a1 1 0 0 1 1 1V9h-2.2a1.8 1.8 0 1 0 0 3.6H21V19.5a1 1 0 0 1-1 1h-4.5v-2.2a1.8 1.8 0 1 0-3.6 0v2.2H4a1 1 0 0 1-1-1V15h2.2a1.8 1.8 0 1 0 0-3.6H3V4.5a1 1 0 0 1 1-1z"/></svg>',
   copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2.5"/><path d="M16 8V5.5A2.5 2.5 0 0 0 13.5 3h-8A2.5 2.5 0 0 0 3 5.5v8A2.5 2.5 0 0 0 5.5 16H8"/></svg>',
   chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
   sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
@@ -611,7 +635,8 @@ function railItem(p){const s=sk(p.id);return '<a class="rl'+(S.view===p.id?' on'
 function renderRail(){
   rail.innerHTML='<a class="rl'+(S.view==='overview'?' on':'')+'" href="#overview" style="--acc:var(--ink-2)"><span class="gl">'+ICON.home+'</span><span>Overview</span><span></span></a>'+
   '<div class="rl-h">Crafting</div>'+PROFS.filter(p=>p.kind==='craft').map(railItem).join('')+
-  '<div class="rl-h">Gathering</div>'+PROFS.filter(p=>p.kind==='gather').map(railItem).join('');
+  '<div class="rl-h">Gathering</div>'+PROFS.filter(p=>p.kind==='gather').map(railItem).join('')+
+  '<div class="rl-h">Tools</div><a class="rl'+(S.view==='addon'?' on':'')+'" href="#addon" style="--acc:#8b5cf6"><span class="gl">'+ICON.addon+'</span><span>WoW addon</span><span></span></a>';
   const on=rail.querySelector('.rl.on');if(on&&window.innerWidth<=860){try{on.scrollIntoView({inline:'center',block:'nearest'})}catch(e){}}
 }
 function applyTheme(){
@@ -774,6 +799,25 @@ function stepRow(st,c,i,s,isOpen,ci){
       '</dl></div>'+
     '</div></div>';
 }
+function filterQ(){const f=S.filters;return (f.minSold===DEF_F.minSold&&f.minListed===DEF_F.minListed&&f.cut===DEF_F.cut)?'':'?minSold='+f.minSold+'&minListed='+f.minListed+'&cut='+f.cut}
+function cmdBox(text){return '<div class="cmd"><code>'+esc(text)+'</code><button type="button" class="btn" data-copy="'+esc(text)+'">'+ICON.copy+'Copy</button></div>'}
+function viewAddon(){
+  const o=location.origin,q=filterQ(),f=S.filters;
+  const ps=a=>'powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm \''+o+'/addon/update.ps1'+q+'\'))) '+a+'"';
+  return '<section class="ad-hero"><span class="ph-gl">'+ICON.addon+'</span><div><h1>CraftPath for WoW</h1><p>The same routes in game: CraftPath reads your skill, shows what to craft next, the mats you still need (counting your bags and bank) and gold tips – for all eight professions, with the live prices and filters from this site.</p></div></section>'+
+  '<section class="ad-feat"><div><b>Reads your skill</b>Picks up skill-ups as you craft and moves to the next step by itself.</div><div><b>Mini tracker</b>A small window with the next recipe and crafts left while you craft.</div><div><b>Your filters</b>Built with your filters: ≥ '+fmt1(f.minSold)+' sold/day, ≥ '+nf(f.minListed)+' listed, '+f.cut+'% AH cut.</div><div><b>Link back</b><kbd>/cpath web</kbd> gives you a link to the same route here, with your skill filled in.</div></section>'+
+  '<ol class="ad-steps">'+
+    '<li><h3>Download the addon</h3><p>Unzip it into <code>World of Warcraft\\_forever_\\Interface\\AddOns</code> so you get a <b>CraftPath</b> folder there, then restart the game or type <kbd>/reload</kbd>.</p>'+
+      '<p><a class="btn primary lg" href="/addon/CraftPath.zip'+q+'" download>Download CraftPath.zip</a></p></li>'+
+    '<li><h3>Keep the prices fresh</h3><p>WoW addons cannot go online, so CraftPath reads a data file. This updater downloads a fresh one every '+((D&&D.refreshMinutes)||30)+' minutes in the background – and installs the addon if it is missing. In game, type <kbd>/reload</kbd> to load the newest numbers.</p>'+
+      '<div class="os">Windows – paste into PowerShell or the Run box (Win + R)</div>'+cmdBox(ps('-Install'))+
+      '<p style="font-size:13px;color:var(--ink-3)">It finds your WoW folder by itself. To stop it later, run the same line with <code>-Uninstall</code> instead of <code>-Install</code>. For a single update without the background task, use <code>-Once</code>.</p>'+
+      '<div class="os">macOS</div>'+cmdBox('curl -fsSL '+o+'/addon/update.sh'+q+' | sh -s -- --install')+
+      '<p style="font-size:13px;color:var(--ink-3)">Prefer doing it by hand? Download <a href="/addon/Data.lua'+q+'" download style="color:var(--acc)">Data.lua</a> and put it in the CraftPath folder.</p></li>'+
+    '<li><h3>Use it in game</h3><p><kbd>/cpath</kbd> opens the window · <kbd>/cpath mini</kbd> toggles the tracker · <kbd>/cpath data</kbd> shows how old the prices are · <kbd>/cpath web</kbd> links back here · <kbd>/cpath skill first aid 120</kbd> sets a skill by hand.</p></li>'+
+  '</ol>'+
+  '<p class="muted" style="font-size:13px">Change the filters on any profession page first if you want a different setup – the download and the updater command above use the filters you have set ('+(q?'custom':'defaults')+'). Source code: <a href="https://github.com/kristofferfeget-cloud/KJCRAFT" style="color:var(--acc)">github.com/kristofferfeget-cloud/KJCRAFT</a>.</p>';
+}
 function fv(){return (D&&D.filters)||S.filters}
 function cutPct(){return (D&&D.filters&&D.filters.cut)||S.filters.cut||5}
 function fmt1(x){return x==null?'0':(Math.round(x*10)/10).toLocaleString('en-GB')}
@@ -880,19 +924,20 @@ function viewGather(P){
 }
 
 /* ---------- render / events ---------- */
-function route(){const h=(location.hash||'').replace('#','');S.view=PBY[h]?h:'overview'}
+function route(){const raw=(location.hash||'').replace('#','');const parts=raw.split('/'),h=parts[0],sk=parts[1];if(h==='addon'){S.view='addon';return}S.view=PBY[h]?h:'overview';if(PBY[h]&&sk&&/^\d+$/.test(sk)){S.skill[h]=Math.max(1,Math.min(300,+sk));save();try{history.replaceState(null,'','#'+h)}catch(e){}}}
 function render(keepFocus){
   if(!D){renderRail();return}
   const P=PBY[S.view];
   document.documentElement.style.setProperty('--acc',P?P.hue:'#3b6fe0');
   renderRail();
-  main.innerHTML=!P?viewOverview():P.kind==='craft'?viewCraft(P):viewGather(P);
+  if(S.view==='addon')document.documentElement.style.setProperty('--acc','#8b5cf6');
+  main.innerHTML=S.view==='addon'?viewAddon():!P?viewOverview():P.kind==='craft'?viewCraft(P):viewGather(P);
   if(keepFocus){const i=document.getElementById(typeof keepFocus==='string'?keepFocus:'skill');if(i){i.focus();if(i.tagName==='INPUT'){try{const v=i.value;i.value='';i.value=v}catch(e){}}}}
 }
 function setSkill(v,keep){const P=PBY[S.view];if(!P)return;v=Math.max(1,Math.min(300,Math.round(+v||1)));S.skill[P.id]=v;const ok=P.id+':'+S.variant;delete S.open[ok];save();render(keep)}
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('on'),1800)}
-function copyText(t){
-  const done=()=>toast('Shopping list copied');
+function copyText(t,msg){
+  const done=()=>toast(msg||'Shopping list copied');
   const fb=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done()}catch(e){toast('Could not copy')}};
   try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fb);else fb()}catch(e){fb()}
 }
@@ -904,6 +949,7 @@ document.addEventListener('click',e=>{
   if(t.dataset.toggle!=null){const i=+t.dataset.toggle;const P=PBY[S.view];const k=P.id+':'+S.variant;const set=S.open[k]||(S.open[k]=new Set());
     const el=document.getElementById('st-'+i);if(set.has(i)){set.delete(i);el.classList.remove('open');t.setAttribute('aria-expanded','false')}else{set.add(i);el.classList.add('open');t.setAttribute('aria-expanded','true')}return}
   if(t.dataset.jump!=null){const i=+t.dataset.jump;const P=PBY[S.view];const k=P.id+':'+S.variant;const set=S.open[k]||(S.open[k]=new Set());set.add(i);const el=document.getElementById('st-'+i);if(el){el.classList.add('open');el.querySelector('.st-main').setAttribute('aria-expanded','true');el.scrollIntoView({behavior:'smooth',block:'center'})}return}
+  if(t.dataset.copy){copyText(t.dataset.copy,'Copied');return}
   if(t.dataset.act==='freset'){setFilters(Object.assign({},DEF_F));return}
   if(t.dataset.act==='copy'){const P=PBY[S.view];const R=D.profs[P.id][S.variant];const s=sk(P.id);const list=shopping(R,routeCalc(R,s,S.horizon));
     copyText('Shopping list '+P.name+' '+s+'→300\n'+list.map(x=>iname(x.id)+' x'+x.q).join('\n'));return}
