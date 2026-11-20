@@ -538,7 +538,7 @@ function ns.Budget()
 end
 
 -- what the rest of a route costs from this skill: peak gold needed and net result
--- (buy each step's mats, craft, and - if sales is true - sell before the next step; AH sales capped at a day's volume)
+-- (buy mats for ~5 crafts at a time and - if sales is true - sell them before buying more; AH sales capped at a day's volume)
 function ns.RestCalc(route, skill, sales)
   skill = skill or 1
   local learned, c, peak, net = {}, 0, 0, 0
@@ -558,9 +558,26 @@ function ns.RestCalc(route, skill, sales)
       elseif st.how == "vendor" then
         val = n * (st.sale or 0)
       end
-      c = c + mats + pat
-      if c > peak then peak = c end
-      if sales then c = c - val end
+      -- buy mats for ~5 crafts at a time; sell them before buying more (AH beyond a day's volume at vendor price)
+      local left, soldAH, first, cap = n, 0, true, (st.how == "AH") and (st.sold or 0) or 0
+      while left > 1e-9 do
+        local b = min(5, left)
+        c = c + b * (st.mats or 0) + (first and pat or 0)
+        first = false
+        if c > peak then peak = c end
+        if sales then
+          local v = 0
+          if st.how == "AH" then
+            local a2 = max(0, min(b, cap - soldAH))
+            v = a2 * (st.sale or 0) + (b - a2) * (st.vend or 0)
+            soldAH = soldAH + a2
+          elseif st.how == "vendor" then
+            v = b * (st.sale or 0)
+          end
+          c = c - v
+        end
+        left = left - b
+      end
       net = net + val - mats - pat
     end
   end

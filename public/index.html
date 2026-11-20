@@ -642,10 +642,16 @@ function shopping(R,calc){
   R.forEach((st,i)=>{const c=calc.steps[i];if(!c.rc)return;st[17].forEach(([id,n])=>m.set(id,(m.get(id)||0)+n*c.rc))});
   return [...m].map(([id,q])=>{const qq=Math.ceil(q-1e-6);const p=PRICES[id];return {id,q:qq,unit:p?p[0]:null,how:p?p[1]:'',total:p?qq*p[0]:0}}).sort((a,b)=>b.total-a.total);
 }
-// gold needed at most while you level from skill s (buy each step's mats, craft, then sell before the next step)
+// gold needed at most while you level from skill s: buy mats for ~5 crafts at a time and (if sales) sell them
+// before buying more; AH sales beyond a day's volume count at vendor price, like the rest of the page
+const BATCH=5;
 function peakCalc(R,s,H,sales){
   const C=routeCalc(R,s,H);let c=0,peak=0;
-  C.steps.forEach(x=>{if(x.done)return;c+=x.mats+x.pat;if(c>peak)peak=c;if(sales)c-=x.val});
+  R.forEach((st,i)=>{const x=C.steps[i];if(x.done||!x.rc)return;
+    const how=st[14],cap=how==='AH'?(st[15]||0)*H:0;let left=x.rc,soldAH=0,first=true;
+    while(left>1e-9){const b=Math.min(BATCH,left);c+=b*st[12]+(first?x.pat:0);first=false;if(c>peak)peak=c;
+      if(sales){let v=0;if(how==='AH'){const a=Math.max(0,Math.min(b,cap-soldAH));v=a*st[13]+(b-a)*(st[16]||0);soldAH+=a}else if(how==='vendor')v=b*st[13];c-=v}
+      left-=b}});
   return {peak,C};
 }
 // pick the best route from the budget family that fits the player's gold
@@ -668,7 +674,7 @@ function budgetBanner(PK){
   if(i.nofam)return box('adj','Budget routes need live prices – showing the normal route for now.');
   const g=money(i.budget,{short:true}),pk=money(PK.peak,{short:true});
   if(!i.fits)return box('no','<b>No route fits '+g+'.</b> Showing the one that needs the least gold: '+pk+' at most. Sell or farm a little first, or level part of the way.');
-  if(i.isDefault)return box('ok','<b>Fits your '+g+'.</b> The normal route needs '+pk+' at most'+(S.sales?' when you sell as you go':'')+'.');
+  if(i.isDefault)return box('ok','<b>Fits your '+g+'.</b> The normal route needs '+pk+' at most'+(S.sales?' when you buy mats for a few crafts at a time and sell as you go':' paying for all mats up front')+'.');
   return box('adj','<b>Adjusted for your '+g+':</b> this route needs '+pk+' at most and nets '+money(PK.C.T.net,{sign:true,short:true})+'. The normal route would need '+money(i.def.peak,{short:true})+' (net '+money(i.def.C.T.net,{sign:true,short:true})+').');
 }
 function curStep(R,s){return R.findIndex(st=>s>=st[0]&&s<st[1])}
@@ -736,7 +742,7 @@ function viewCraft(P){
   const left=300-s;
   h+='<dl class="stats">'+
     '<div class="stat"><dt>Remaining</dt><dd>'+left+' <span class="muted" style="font-size:13px">points</span></dd><small>≈ '+nf(T.crafts)+' crafts</small></div>'+
-    '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>needs '+money(PK.peak,{short:true})+' at most'+(S.sales?', selling as you go':'')+'</small></div>'+
+    '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>gold needed: '+money(PK.peak,{short:true})+' at most'+(S.sales?', selling as you go':', no selling')+'</small></div>'+
     '<div class="stat"><dt>Sale value</dt><dd>'+money(T.val,{short:true})+'</dd><small>after the '+cutPct()+'% AH cut</small></div>'+
     '<div class="stat"><dt>Patterns</dt><dd>'+money(T.pat,{short:true})+'</dd><small>recipes from the AH</small></div>'+
     '<div class="stat hl"><dt>Net</dt><dd>'+money(T.net,{sign:true,short:true})+'</dd><small>'+(T.net>=0?'you make money levelling':'cost to reach 300')+'</small></div></dl>';
@@ -896,7 +902,7 @@ function methodBlock(){
     '<li>At every skill level the recipe with the lowest cost per skill point is picked: mats minus expected sale value, plus the pattern price the first time, with a small surcharge for time and tied-up gold, and a small penalty for switching recipes often.</li>'+
     '<li>Skill-up chance: orange 100%, yellow and green (grey − skill) / (grey − yellow), grey 0%. “Crafts” is the expected number.</li>'+
     '<li>Sale value is the AH price after the AH cut ('+cutPct()+'%), but only for as many as the market trades over the chosen number of days – the rest is counted at vendor price. If a vendor pays more than the AH, the vendor price is used.</li>'+
-    '<li>Your gold: the server also builds a family of routes with a growing penalty on gold tied up in mats and patterns. The page picks the one with the best net result that never needs more gold than you have – counting on selling what you craft before the next step, unless you untick that.</li>'+
+    '<li>Your gold: the server also builds a family of routes with a growing penalty on gold tied up in mats and patterns. The page picks the one with the best net result that never needs more gold than you have. “Gold needed” assumes you buy mats for about 5 crafts at a time and sell them before buying more (AH sales beyond one day of volume at vendor price) – untick “Count on selling as I go” to pay for everything up front.</li>'+
     '<li>Filters: items that sell fewer than '+fmt1(fv().minSold)+' per day or have fewer than '+fv().minListed+' listed are ignored on the AH. They are not bought there (vendor or crafting is used instead, or the recipe is skipped), and their AH price is not counted when selling.</li>'+
     '<li>Left out of the routes: recipes with a cooldown (transmutes, Mooncloth, salt), Gnomish/Goblin specialization, reputation recipes and recipes with an unknown source. Drop and quest patterns are only used when they cost 6g or less on the AH.</li>'+
     '<li>Mats price is the cheapest of AH, vendor and crafting it yourself. “Trainer only” uses trainer recipes as far as possible, and vendor/drop recipes only where the trainer has nothing that gives points.</li>'+
