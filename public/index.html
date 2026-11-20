@@ -919,8 +919,9 @@ async function loadData(){
 }
 applyTheme();route();renderRail();updateChip();
 main.innerHTML='<div class="loading">Loading fresh AH prices…</div>';
-loadData();
-setInterval(loadData,120000);
+let pollT;
+function schedule(){clearTimeout(pollT);pollT=setTimeout(()=>loadData().finally(schedule),isLive()?120000:15000)}
+loadData().finally(schedule);
 setInterval(updateChip,30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadData()});
 })();
