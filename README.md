@@ -1,5 +1,7 @@
 # WoW Forever – yrkesruter 1–300
 
+**Live:** <https://web-production-949755cb.up.railway.app>
+
 Nettside som viser billigste vei fra 1 til 300 i alle yrker i **WoW: Forever** (Normal Alliance EU), regnet ut fra **live AH-priser**.
 
 - Ruter trinn for trinn for Alchemy, Blacksmithing, Enchanting, Engineering, Leatherworking, Tailoring, Cooking og First Aid – «Beste rute» og «Kun trainer».
@@ -36,6 +38,10 @@ npm test
 | `REFRESH_MINUTES` | `30` | Hvor ofte prisene hentes (min. 10) |
 | `RECIPES_REFRESH_HOURS` | `24` | Hvor ofte oppskriftene hentes |
 | `CACHE_DIR` | `.cache` | Hvor siste data lagres mellom omstarter |
+
+## Drift
+
+Kjører på Railway (prosjekt `kjcraft`, tjeneste `web`, region EU West). Hver push til `main` deployes automatisk.
 
 ## Endepunkter
 
