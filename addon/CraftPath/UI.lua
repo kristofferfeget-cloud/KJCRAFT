@@ -1578,9 +1578,15 @@ function UI:Refresh(scrollToCurrent)
   end
   if binfo and skill then
     local col = binfo.fits and (binfo.default and C.pos or C.gold) or C.neg
-    local txt = binfo.fits and (binfo.default and "fits " or "adjusted to ") or "nothing fits "
-    self.stepText:SetText((self.stepText.GetText and self.stepText:GetText() or "") .. "  ·  " .. Hex(col) .. txt .. "|r" .. ns.Money(binfo.budget)
-      .. Hex(C.mute) .. "  (needs |r" .. ns.Money(binfo.peak) .. Hex(C.mute) .. ")|r")
+    local base = (self.stepText.GetText and self.stepText:GetText() or "") .. "  ·  "
+    if binfo.fits then
+      local txt = binfo.default and "fits " or "adjusted to "
+      self.stepText:SetText(base .. Hex(col) .. txt .. "|r" .. ns.Money(binfo.budget)
+        .. Hex(C.mute) .. "  (needs |r" .. ns.Money(binfo.peak) .. Hex(C.mute) .. ")|r")
+    else
+      self.stepText:SetText(base .. ns.Money(binfo.budget) .. Hex(col) .. " lasts to " .. (binfo.reach or "?") .. "|r"
+        .. Hex(C.mute) .. "  (all the way: |r" .. ns.Money(binfo.peak) .. Hex(C.mute) .. ")|r")
+    end
   end
 
   self:RenderBar(key, route, skill)

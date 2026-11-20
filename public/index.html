@@ -645,14 +645,17 @@ function shopping(R,calc){
 // gold needed at most while you level from skill s: buy mats for ~5 crafts at a time; what you craft can always be
 // vendored right away, and with ahSales the AH value counts instead (beyond a day's volume at vendor price)
 const BATCH=5;
-function peakCalc(R,s,H,sales){
-  const C=routeCalc(R,s,H);let c=0,peak=0;
+// reach: the skill you get to before the gold in `budget` runs out (end of the route if it never does)
+function peakCalc(R,s,H,sales,budget){
+  const C=routeCalc(R,s,H);let c=0,peak=0,reach=null;
   R.forEach((st,i)=>{const x=C.steps[i];if(x.done||!x.rc)return;
-    const how=st[14],cap=how==='AH'?(st[15]||0)*H:0;let left=x.rc,soldAH=0,first=true;
+    const how=st[14],cap=how==='AH'?(st[15]||0)*H:0,a0=Math.max(s,st[0]),span=st[1]-a0;let left=x.rc,soldAH=0,first=true,pos=a0;
     while(left>1e-9){const b=Math.min(BATCH,left);c+=b*st[12]+(first?x.pat:0);first=false;if(c>peak)peak=c;
+      if(reach==null&&budget!=null&&c>budget)reach=Math.floor(pos);
       let v=0;if(how==='none')v=0;else if(sales&&how==='AH'){const a=Math.max(0,Math.min(b,cap-soldAH));v=a*st[13]+(b-a)*(st[16]||0);soldAH+=a}else v=b*(st[16]||0);c-=v;
-      left-=b}});
-  return {peak,C};
+      left-=b;pos+=span*b/x.rc}});
+  if(reach==null)reach=R.length?R[R.length-1][1]:300;
+  return {peak,C,reach:Math.max(s,reach)};
 }
 // pick the best route from the budget family that fits the player's gold
 function pickRoute(slug,v,s){
@@ -660,12 +663,14 @@ function pickRoute(slug,v,s){
   if(S.gold==null||!P.fam||!P.fam[v]){const pc=peakCalc(base,s,H,S.ahSales);return {R:base,key:0,C:pc.C,peak:pc.peak,info:S.gold==null?null:{nofam:true}}}
   const budget=S.gold*10000,seen=new Map();
   P.fam[v].forEach(i=>{if(!seen.has(i))seen.set(i,i===0?base:P.alts[i-1])});
-  let best=null,min=null,def=null;
-  seen.forEach((R,i)=>{const pc=peakCalc(R,s,H,S.ahSales);const o={R,key:i,C:pc.C,peak:pc.peak};if(i===0)def=o;
-    if(pc.peak<=budget&&(!best||o.C.T.net>best.C.T.net))best=o;if(!min||o.peak<min.peak)min=o});
+  let best=null,far=null,def=null;
+  seen.forEach((R,i)=>{const pc=peakCalc(R,s,H,S.ahSales,budget);const o={R,key:i,C:pc.C,peak:pc.peak,reach:pc.reach};if(i===0)def=o;
+    if(pc.peak<=budget&&(!best||o.C.T.net>best.C.T.net))best=o;
+    // nothing fits: the route that gets you furthest on the gold you have (then the one needing the least)
+    if(!far||o.reach>far.reach||(o.reach===far.reach&&o.peak<far.peak))far=o});
   // the normal route wins whenever it fits, so a big budget never changes anything
-  const pick=def.peak<=budget?def:(best||min);
-  pick.info={fits:pick.peak<=budget,budget,def,isDefault:pick.key===0};
+  const pick=def.peak<=budget?def:(best||far);
+  pick.info={fits:pick.peak<=budget,budget,def,isDefault:pick.key===0,other:peakCalc(pick.R,s,H,!S.ahSales).peak};
   return pick;
 }
 function budgetBanner(PK){
@@ -673,9 +678,10 @@ function budgetBanner(PK){
   const box=(cls,txt)=>'<section class="budget '+cls+'"><span class="bt">'+txt+'</span><label class="chk" title="Off: what you craft is counted at vendor price, which you can always get right away. On: AH sales count as you go."><input type="checkbox" id="sales"'+(S.ahSales?' checked':'')+'>Also count AH sales as I go</label></section>';
   if(i.nofam)return box('adj','Budget routes need live prices – showing the normal route for now.');
   const g=money(i.budget,{short:true}),pk=money(PK.peak,{short:true});
-  if(!i.fits)return box('no','<b>No route fits '+g+'.</b> Showing the one that needs the least gold: '+pk+' at most. Sell or farm a little first, or level part of the way.');
-  if(i.isDefault)return box('ok','<b>Fits your '+g+'.</b> The normal route needs '+pk+' at most – buying mats for a few crafts at a time and '+(S.ahSales?'selling on the AH as you go':'vendoring what you make if you have to')+'.');
-  return box('adj','<b>Adjusted for your '+g+':</b> this route needs '+pk+' at most and nets '+money(PK.C.T.net,{sign:true,short:true})+'. The normal route would need '+money(i.def.peak,{short:true})+' (net '+money(i.def.C.T.net,{sign:true,short:true})+').');
+  const alt=S.ahSales?'':' Selling on the AH as you go, about '+money(i.other,{short:true})+' would do.';
+  if(!i.fits)return box('no','<b>'+g+' is not enough for the whole way.</b> On the route that gets you furthest, '+g+' takes you to about <b>skill '+PK.reach+'</b>; the whole way needs '+pk+' at most. Then sell what you have made, or farm a bit more.'+alt);
+  if(i.isDefault)return box('ok','<b>Fits your '+g+'.</b> The normal route needs '+pk+' at most – buying mats for a few crafts at a time and '+(S.ahSales?'selling on the AH as you go':'vendoring what you make if you have to')+'.'+alt);
+  return box('adj','<b>Adjusted for your '+g+':</b> this route needs '+pk+' at most and nets '+money(PK.C.T.net,{sign:true,short:true})+'. The normal route would need '+money(i.def.peak,{short:true})+' (net '+money(i.def.C.T.net,{sign:true,short:true})+').'+alt);
 }
 function curStep(R,s){return R.findIndex(st=>s>=st[0]&&s<st[1])}
 
@@ -716,7 +722,7 @@ function viewOverview(){
   h+='<h2 class="ov-h">Crafting <small>net = sale value − mats − patterns for the rest of the route</small></h2><section class="ov-grid">';
   PROFS.filter(p=>p.kind==='craft').forEach(p=>{
     const s=sk(p.id),PK=pickRoute(p.id,S.variant,s),R=PK.R,C=PK.C;
-    const bf=PK.info&&!PK.info.nofam?(PK.info.fits?(PK.info.isDefault?'<div class="bfit ok">Fits your gold</div>':'<div class="bfit adj">Adjusted to your gold</div>'):'<div class="bfit no">Needs '+moneyText(PK.peak).replace(/ \d+c$/,'')+'</div>'):'';
+    const bf=PK.info&&!PK.info.nofam?(PK.info.fits?(PK.info.isDefault?'<div class="bfit ok">Fits your gold</div>':'<div class="bfit adj">Adjusted to your gold</div>'):'<div class="bfit no">Your gold lasts to '+PK.reach+'</div>'):'';
     const strip=R.map(st=>'<i class="'+(s>=st[1]?'done':'')+'" style="flex:'+(st[1]-st[0])+'"></i>').join('');
     h+='<a class="oc" href="#'+p.id+'" style="--acc:'+p.hue+'"><div class="oc-top"><span class="gl">'+ICON[p.id]+'</span><span class="oc-nm">'+p.name+'</span>'+(s>1?'<span class="oc-sk">'+s+'/300</span>':'')+'</div>'+
       '<div class="oc-net">'+(s>=300?'<span class="m pos">Done</span>':money(C.T.net,{sign:true,short:true}))+'<small>net '+(s>1?'from '+s+' to 300':'1–300')+'</small>'+bf+'</div>'+

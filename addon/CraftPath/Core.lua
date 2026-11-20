@@ -540,9 +540,10 @@ end
 -- what the rest of a route costs from this skill: peak gold needed and net result
 -- (buy mats for ~5 crafts at a time; crafted items count at vendor price right away, or with ahSales at their AH value,
 -- capped at a day's volume like the rest of the addon)
-function ns.RestCalc(route, skill, ahSales)
+-- reach: the skill you get to before `budget` runs out (end of the route if it never does)
+function ns.RestCalc(route, skill, ahSales, budget)
   skill = skill or 1
-  local learned, c, peak, net = {}, 0, 0, 0
+  local learned, c, peak, net, reach = {}, 0, 0, 0, nil
   for _, st in ipairs(route) do if st.from < skill then learned[st.name] = true end end
   for _, st in ipairs(route) do
     if skill < st.to then
@@ -561,11 +562,13 @@ function ns.RestCalc(route, skill, ahSales)
       end
       -- buy mats for ~5 crafts at a time; sell them before buying more (AH beyond a day's volume at vendor price)
       local left, soldAH, first, cap = n, 0, true, (st.how == "AH") and (st.sold or 0) or 0
+      local pos, span = a, st.to - a
       while left > 1e-9 do
         local b = min(5, left)
         c = c + b * (st.mats or 0) + (first and pat or 0)
         first = false
         if c > peak then peak = c end
+        if not reach and budget and c > budget then reach = floor(pos) end
         local v = 0
         if st.how == "none" then
           v = 0
@@ -578,11 +581,13 @@ function ns.RestCalc(route, skill, ahSales)
         end
         c = c - v
         left = left - b
+        if n > 0 then pos = pos + span * b / n end
       end
       net = net + val - mats - pat
     end
   end
-  return peak, net
+  if not reach then reach = (#route > 0) and route[#route].to or 300 end
+  return peak, net, max(skill, reach)
 end
 
 -- the route to show: the normal one, or the best one from the budget family that fits your gold
@@ -596,21 +601,24 @@ function ns.Route(key)
   local sales = ns.db.budget.ahSales == true
   local ck = table.concat({ v, skill, budget, tostring(sales) }, "|")
   if p.bcache and p.bcache.key == ck then return p.bcache.route, v, p.bcache.info end
-  local seen, best, bestPeak, bestNet, minR, minPeak, minNet = {}, nil, nil, nil, nil, nil, nil
+  local seen, best, bestPeak, bestNet, farR, farPeak, farNet, farReach = {}, nil, nil, nil, nil, nil, nil, nil
   for _, idx in ipairs(p.fam[v]) do
     local r = (idx == 0) and base or p.alts[idx]
     if r and not seen[r] then
       seen[r] = true
-      local peak, net = ns.RestCalc(r, skill, sales)
+      local peak, net, reach = ns.RestCalc(r, skill, sales, budget)
       if peak <= budget and (not best or net > bestNet) then best, bestPeak, bestNet = r, peak, net end
-      if not minR or peak < minPeak then minR, minPeak, minNet = r, peak, net end
+      -- nothing fits: the route that gets you furthest on the gold you have (then the one needing the least)
+      if not farR or reach > farReach or (reach == farReach and peak < farPeak) then
+        farR, farPeak, farNet, farReach = r, peak, net, reach
+      end
     end
   end
   local defPeak, defNet = ns.RestCalc(base, skill, sales)
   -- the normal route wins whenever it fits, so a big budget never changes anything
   if defPeak <= budget then best, bestPeak, bestNet = base, defPeak, defNet end
   local info = { budget = budget, fits = best ~= nil, defPeak = defPeak, defNet = defNet }
-  if not best then best, bestPeak, bestNet = minR, minPeak, minNet end
+  if not best then best, bestPeak, bestNet, info.reach = farR, farPeak, farNet, farReach end
   info.peak, info.net, info.default = bestPeak, bestNet, best == base
   p.bcache = { key = ck, route = best, info = info }
   return best, v, info
