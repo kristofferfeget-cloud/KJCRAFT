@@ -67,6 +67,9 @@ for _, d in ipairs(PROF_DEFS) do
   if data then
     d.routes = { best = ParseRoute(data.best), trainer = ParseRoute(data.trainer) }
     d.gold = ParseGold(data.gold)
+    d.alts = {}
+    for i, r in ipairs(data.alts or {}) do d.alts[i] = ParseRoute(r) end
+    d.fam = data.fam
     if #d.routes.trainer == 0 then d.routes.trainer = d.routes.best end
     ns.PROFS[#ns.PROFS + 1] = d
     ns.PROF_BY_KEY[d.key] = d
@@ -497,6 +500,7 @@ local DEFAULTS = {
   tab = "tailoring",
   mode = "route",
   variant = {},
+  budget = { mode = "off", gold = 0, sales = true },
   livePrices = true,
   mini = { shown = true, point = { "TOP", "TOP", 0, -140 }, prof = "auto" },
   minimap = { hide = false, angle = 200 },
@@ -521,10 +525,77 @@ local function CopyDefaults(src, dst)
 end
 ns.CopyDefaults = CopyDefaults
 
+-- gold you want to plan with (copper), or nil when the budget is off
+function ns.Budget()
+  local b = ns.db and ns.db.budget
+  if not b or b.mode == "off" then return nil end
+  if b.mode == "manual" then return b.gold or 0 end
+  if GetMoney then
+    local ok, v = pcall(GetMoney)
+    if ok and type(v) == "number" and not issecret(v) then return v end
+  end
+  return nil
+end
+
+-- what the rest of a route costs from this skill: peak gold needed and net result
+-- (buy each step's mats, craft, and - if sales is true - sell before the next step; AH sales capped at a day's volume)
+function ns.RestCalc(route, skill, sales)
+  skill = skill or 1
+  local learned, c, peak, net = {}, 0, 0, 0
+  for _, st in ipairs(route) do if st.from < skill then learned[st.name] = true end end
+  for _, st in ipairs(route) do
+    if skill < st.to then
+      local a = max(skill, st.from)
+      local full = ns.Crafts(st, st.from, st.to)
+      local n = full > 0 and (st.crafts or full) * ns.Crafts(st, a, st.to) / full or 0
+      local mats = n * (st.mats or 0)
+      local pat = (not learned[st.name]) and (st.pat or 0) or 0
+      learned[st.name] = true
+      local val = 0
+      if st.how == "AH" then
+        local n1 = min(n, st.sold or 0)
+        val = n1 * (st.sale or 0) + (n - n1) * (st.vend or 0)
+      elseif st.how == "vendor" then
+        val = n * (st.sale or 0)
+      end
+      c = c + mats + pat
+      if c > peak then peak = c end
+      if sales then c = c - val end
+      net = net + val - mats - pat
+    end
+  end
+  return peak, net
+end
+
+-- the route to show: the normal one, or the best one from the budget family that fits your gold
 function ns.Route(key)
   local p = ns.PROF_BY_KEY[key]
   local v = (ns.db and ns.db.variant[key]) or "best"
-  return p.routes[v] or p.routes.best, v
+  local base = p.routes[v] or p.routes.best
+  local budget = ns.Budget()
+  if not budget or not (p.fam and p.fam[v]) then return base, v, nil end
+  local skill = ns.GetSkill(key) or 1
+  local sales = ns.db.budget.sales ~= false
+  local ck = table.concat({ v, skill, budget, tostring(sales) }, "|")
+  if p.bcache and p.bcache.key == ck then return p.bcache.route, v, p.bcache.info end
+  local seen, best, bestPeak, bestNet, minR, minPeak, minNet = {}, nil, nil, nil, nil, nil, nil
+  for _, idx in ipairs(p.fam[v]) do
+    local r = (idx == 0) and base or p.alts[idx]
+    if r and not seen[r] then
+      seen[r] = true
+      local peak, net = ns.RestCalc(r, skill, sales)
+      if peak <= budget and (not best or net > bestNet) then best, bestPeak, bestNet = r, peak, net end
+      if not minR or peak < minPeak then minR, minPeak, minNet = r, peak, net end
+    end
+  end
+  local defPeak, defNet = ns.RestCalc(base, skill, sales)
+  -- the normal route wins whenever it fits, so a big budget never changes anything
+  if defPeak <= budget then best, bestPeak, bestNet = base, defPeak, defNet end
+  local info = { budget = budget, fits = best ~= nil, defPeak = defPeak, defNet = defNet }
+  if not best then best, bestPeak, bestNet = minR, minPeak, minNet end
+  info.peak, info.net, info.default = bestPeak, bestNet, best == base
+  p.bcache = { key = ck, route = best, info = info }
+  return best, v, info
 end
 
 -- the profession the mini tracker should follow
@@ -585,7 +656,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
     if not ns.PROF_BY_KEY[ns.db.tab] then ns.db.tab = ns.PROF_BY_KEY.tailoring and "tailoring" or (ns.PROFS[1] and ns.PROFS[1].key) end
   elseif event == "PLAYER_LOGIN" then
     for _, e in ipairs({ "SKILL_LINES_CHANGED", "TRADE_SKILL_SHOW", "TRADE_SKILL_LIST_UPDATE", "CHAT_MSG_SKILL",
-                          "BAG_UPDATE_DELAYED", "GET_ITEM_INFO_RECEIVED", "LEARNED_SPELL_IN_TAB" }) do
+                          "BAG_UPDATE_DELAYED", "GET_ITEM_INFO_RECEIVED", "LEARNED_SPELL_IN_TAB", "PLAYER_MONEY" }) do
       SafeRegister(e)
     end
     ns.ScanSkills()
@@ -595,7 +666,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
     local msg = ...
     if ns.ParseSkillMessage(msg) then ns.RequestRefresh(false) end
     ns.RequestRefresh(true)
-  elseif event == "BAG_UPDATE_DELAYED" or event == "GET_ITEM_INFO_RECEIVED" then
+  elseif event == "BAG_UPDATE_DELAYED" or event == "GET_ITEM_INFO_RECEIVED" or event == "PLAYER_MONEY" then
     ns.RequestRefresh(false)
   elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_LIST_UPDATE" then
     local key = ns.ScanTradeSkill()
@@ -625,6 +696,8 @@ local HELP = {
   "/cpath skill tailoring 152 - set a skill by hand if it is not read automatically",
   "/cpath live - turn live Auctionator prices on or off",
   "/cpath data - how old the price data is and how to update it",
+  "/cpath gold auto, /cpath gold 150 or /cpath gold off - plan the route for your gold (auto = what you carry)",
+  "/cpath sales - count on selling as you go (on/off) when planning for your gold",
   "/cpath web - link to this route on the website",
   "/cpath scale 1.1 - change the size (0.7 to 1.5)",
   "/cpath reset - move the windows back to the middle",
@@ -682,6 +755,18 @@ local function Slash(input)
     Print(R.url or "?")
   elseif cmd == "web" then
     UI:ShowLink()
+  elseif cmd == "gold" or cmd == "budget" then
+    local b = ns.db.budget
+    if rest == "off" then b.mode = "off"
+    elseif rest == "" or rest == "auto" then b.mode = "auto"
+    elseif tonumber(rest) then b.mode = "manual"; b.gold = floor(tonumber(rest) * 10000)
+    else b.mode = "off" end
+    Print(b.mode == "off" and "Budget off - showing the normal route." or (b.mode == "auto" and "Planning the route for the gold you carry." or ("Planning the route for " .. ns.Money(b.gold) .. ".")))
+    UI:Refresh(true)
+  elseif cmd == "sales" then
+    ns.db.budget.sales = not (ns.db.budget.sales ~= false)
+    Print(ns.db.budget.sales and "Budget counts on selling as you go." or "Budget does not count on selling - all mats are paid up front.")
+    UI:Refresh()
   elseif cmd == "reset" then
     ns.db.point = { "CENTER", "CENTER", 0, 40 }
     ns.db.mini.point = { "TOP", "TOP", 0, -140 }

@@ -25,6 +25,10 @@ export const EXTRA_IDS = [
 // (not bought there, and not counted on to sell there). cut: the AH's cut of a sale.
 export const DEFAULT_OPTS = { minP: 0.2, pen: 2000, sticky: 700, risk: 0.12, maxPattern: 60000, goldTop: 15, goldMinNet: 100, goldMinSold: 5, minSold: 3, minListed: 5, cut: 0.05 };
 
+// Capital-penalty levels for the budget family: from "most gold" (the default route) to "least gold tied up".
+// The site and the addon pick the best of these routes that fits the player's gold.
+export const RISK_LEVELS = [0.12, 0.25, 0.5, 1, 2, 4, 8, 16, 40];
+
 const round1 = (x) => Math.round(x * 10) / 10;
 
 /**
@@ -99,6 +103,8 @@ function crafts(r, a, b) {
  */
 function route(recs, filters, opt) {
   const { minP, pen, sticky, risk } = opt;
+  // patterns are capital too: weigh them up when the capital penalty is raised (no change at the default level)
+  const patFactor = 1 + Math.max(0, risk - (opt.baseRisk ?? risk));
   const used = {}, learned = {}, segs = [];
   let prevK = null;
   for (let s = 1; s < 300; s++) {
@@ -116,7 +122,7 @@ function route(recs, filters, opt) {
         const ahN = Math.max(0, Math.min(n, cap - u));
         const val = ahN * r.sale + (n - ahN) * (r.how === 'AH' ? vend : r.sale);
         const cost = n * r.mats - val;
-        const pc = (!learned[k] && patCost(r)) ? patCost(r) : 0;
+        const pc = (!learned[k] && patCost(r)) ? patCost(r) * patFactor : 0;
         const score = cost + pc + n * pen + n * r.mats * risk + (k === prevK ? 0 : sticky);
         if (!best || score < best.score) best = { r, score, k, n };
       }
@@ -157,8 +163,8 @@ function route(recs, filters, opt) {
  * @param BP  item id -> {med, min, qty}  (pattern prices, same source)
  */
 export function compute(recipes, P, BP, options = {}) {
-  const opt = { ...DEFAULT_OPTS, ...options };
-  const out = { profs: {}, items: {}, prices: {}, gaps: {}, ignored: 0 };
+  const opt = { ...DEFAULT_OPTS, riskLevels: RISK_LEVELS, ...options };
+  const out = { profs: {}, items: {}, prices: {}, gaps: {}, ignored: 0, riskLevels: opt.riskLevels };
   // An item counts on the AH only if it trades and is listed in enough volume.
   const liquid = (id) => { const p = P[id]; return !!p && p.price != null && (p.sales ?? 0) >= opt.minSold && (p.listed ?? 0) >= opt.minListed; };
   for (const id of Object.keys(P)) if (P[id].price != null && !liquid(id)) out.ignored++;
@@ -242,8 +248,9 @@ export function compute(recipes, P, BP, options = {}) {
         r.res ? round1(r.sold) : null, r.res ? (r.res.vs || 0) * r.res.n : 0, r.reag.map((g) => [g.id, g.n]), r.thin ? 1 : 0,
         r.res && r.ahVal != null ? Math.round(r.ahVal) : null, r.res && P[r.res.id] ? (P[r.res.id].listed ?? null) : null, r.res ? (r.liquid ? 1 : 0) : 0];
     };
-    const best = route(recs, [allowBest, allowAny, allowLast], opt);
-    const trainer = route(recs, [allowTrainer, allowBest, allowAny, allowLast], opt);
+    const FILTERS = { best: [allowBest, allowAny, allowLast], trainer: [allowTrainer, allowBest, allowAny, allowLast] };
+    const best = route(recs, FILTERS.best, opt);
+    const trainer = route(recs, FILTERS.trainer, opt);
     const seenRes = new Set();
     const gold = recs
       .filter((r) => r.how === 'AH' && r.mats != null && !r.thin && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= Math.max(opt.goldMinSold, opt.minSold))
@@ -257,7 +264,21 @@ export function compute(recipes, P, BP, options = {}) {
         return [r.name, r.res.id, r.res.n, r.learn, r.src, Math.round(r.mats), Math.round(r.sale), round1(r.sold),
           isCD(r) ? 'cd' : isSpec(r) ? 'spec' : '', r.rep || '', patCost(r) || 0, r.reag.map((g) => [g.id, g.n])];
       });
-    out.profs[slug] = { best: best.segs.map(stepOf), trainer: trainer.segs.map(stepOf), gold };
+    // budget family: the same greedy with a growing penalty on gold tied up in mats and patterns
+    const keyOf = (segs) => segs.map((s) => s.k + ':' + s.from + ':' + s.to).join('|');
+    const defaults = { best, trainer };
+    const alts = [], altIdx = new Map(), fam = { best: [], trainer: [] };
+    for (const v of ['best', 'trainer']) {
+      const defKey = keyOf(defaults[v].segs);
+      for (const risk of opt.riskLevels) {
+        const r = risk === opt.risk ? defaults[v] : route(recs, FILTERS[v], { ...opt, risk, baseRisk: opt.risk });
+        const k = keyOf(r.segs);
+        if (k === defKey) { fam[v].push(0); continue; }
+        if (!altIdx.has(k)) { alts.push(r.segs.map(stepOf)); altIdx.set(k, alts.length); }
+        fam[v].push(altIdx.get(k));
+      }
+    }
+    out.profs[slug] = { best: best.segs.map(stepOf), trainer: trainer.segs.map(stepOf), gold, alts, fam };
     if (best.gaps.length || trainer.gaps.length) out.gaps[slug] = { best: best.gaps, trainer: trainer.gaps };
   }
   // prices + names for the gathering pages

@@ -65,6 +65,8 @@ R.profs["alchemy"] = {
     {"Elixir of Sages",250338,1,275,"R",12732,20228,19.7,"","",0,{{13463,4},{13464,2},{18256,1}}},
     {"Elixir of the Whale",250348,1,275,"R",7902,19000,12.7,"","",0,{{13463,3},{8846,1},{8925,1}}},
   },
+  alts = {
+  },
 }
 R.profs["blacksmithing"] = {
   best = {
@@ -121,6 +123,8 @@ R.profs["blacksmithing"] = {
     {"Wicked Mithril Blade",7943,1,200,"D",27332,36955,40.4,"","",0,{{3860,14},{6037,4},{7966,1},{4304,2}}},
     {"Master Forge",279955,1,300,"P",47073,80750,11,"","",299999,{{273127,1},{12359,5},{8170,2}}},
   },
+  alts = {
+  },
 }
 R.profs["enchanting"] = {
   best = {
@@ -159,6 +163,8 @@ R.profs["enchanting"] = {
     {"Enchanted Leather",12810,1,250,"T",10923,13566,380.6,"","",0,{{8170,1},{16202,1}}},
     {"Lesser Eternal Wand",249232,1,245,"P",15723,28405,15.7,"","",0,{{16202,1},{11176,1},{11291,1}}},
     {"Arcane Salvager",279985,1,140,"D",5426,6546,55.8,"","",30200,{{11137,2},{11174,1}}},
+  },
+  alts = {
   },
 }
 R.profs["engineering"] = {
@@ -221,6 +227,8 @@ R.profs["engineering"] = {
     {"EZ-Thro Fireproof Fuse",260801,1,190,"V",437,5313,42.8,"","",0,{{4404,1},{249428,1}}},
     {"Minor Recombobulator",4381,1,140,"D",2628,5222,86.6,"","",380,{{4371,1},{4375,2},{2319,2},{1206,1}}},
     {"Craftsman's Monocle",4393,1,185,"D",3462,7030,56.6,"","",45000,{{4234,6},{3864,2}}},
+  },
+  alts = {
   },
 }
 R.profs["leatherworking"] = {
@@ -288,6 +296,8 @@ R.profs["leatherworking"] = {
     {"Turtle Scale Breastplate",8189,1,185,"T",13346,15931,84.3,"","",0,{{4304,6},{8167,12},{8343,1}}},
     {"Helm of Fire",8348,1,250,"U",108984,138985,6.7,"","",0,{{4304,40},{7077,8},{7075,4},{8172,2},{8343,4}}},
   },
+  alts = {
+  },
 }
 R.profs["tailoring"] = {
   best = {
@@ -345,6 +355,8 @@ R.profs["tailoring"] = {
     {"Gilded Handwraps",254021,1,165,"P",54547,76000,6,"","",93700,{{4339,12},{8343,4},{249430,2},{249409,1},{3577,4}}},
     {"White Bandit Mask",10008,1,180,"D",4660,6175,101.4,"","",1860,{{4339,1},{2324,1},{8343,1}}},
   },
+  alts = {
+  },
 }
 R.profs["cooking"] = {
   best = {
@@ -384,6 +396,8 @@ R.profs["cooking"] = {
     {"Runn Tum Tuber Surprise",18254,1,275,"D",1640,2184,37.2,"","",0,{{18255,1},{3713,1}}},
     {"Venomous Smoothie",249871,1,25,"P",104,284,134.3,"","",0,{{159,1},{2678,1},{1475,1}}},
   },
+  alts = {
+  },
 }
 R.profs["first-aid"] = {
   best = {
@@ -415,6 +429,8 @@ R.profs["first-aid"] = {
   gold = {
     {"Powerful Poultice",255719,3,280,"P",34056,39869,8.3,"","",37900,{{7080,1},{2692,1},{2594,1}}},
     {"Major Healing Potion",13446,1,275,"V",1940,2182,425.2,"","",0,{{8925,1},{3713,3},{13464,1}}},
+  },
+  alts = {
   },
 }
 R.names = {[159]="Refreshing Spring Water",[730]="Murloc Eye",[765]="Silverleaf",[769]="Chunk of Boar Meat",[774]="Malachite",[818]="Tigerseye",[858]="Lesser Healing Potion",[929]="Healing Potion",[1015]="Lean Wolf Flank",[1206]="Moss Agate",[1210]="Shadowgem",[1251]="Linen Bandage",[1475]="Small Venom Sac",[1529]="Jade",[1705]="Lesser Moonstone",[1708]="Sweet Nectar",[2311]="White Leather Jerkin",[2318]="Light Leather",[2319]="Medium Leather",[2320]="Coarse Thread",[2321]="Fine Thread",[2324]="Bleach",[2325]="Black Dye",[2447]="Peacebloom",[2449]="Earthroot",[2450]="Briarthorn",[2453]="Bruiseweed",[2458]="Elixir of Minor Fortitude",[2569]="Linen Boots",[2576]="White Linen Shirt",[2581]="Heavy Linen Bandage",[2589]="Linen Cloth",[2594]="Flagon of Dwarven Honeymead",[2604]="Red Dye",[2605]="Green Dye",[2674]="Crawler Meat",[2675]="Crawler Claw",[2677]="Boar Ribs",[2678]="Mild Spices",[2681]="Roasted Boar Meat",[2682]="Cooked Crab Claw",[2683]="Crab Cake",[2687]="Dry Pork Ribs",[2692]="Hot Spices",[2723]="Bottle of Dalaran Noir",[2835]="Rough Stone",[2840]="Copper Bar",[2841]="Bronze Bar",[2862]="Rough Sharpening Stone",[2880]="Weak Flux",[2996]="Bolt of Linen Cloth",[2997]="Bolt of Woolen Cloth",[3173]="Bear Meat",[3174]="Spider Ichor",[3355]="Wild Steelbloom",[3356]="Kingsblood",[3371]="Empty Vial",[3372]="Leaded Vial",[3383]="Elixir of Wisdom",[3389]="Elixir of Lesser Defense",[3466]="Strong Flux",[3470]="Rough Grinding Stone",[3474]="Gemmed Copper Gauntlets",[3478]="Coarse Grinding Stone",[3486]="Heavy Grinding Stone",[3491]="Heavy Bronze Mace",[3577]="Gold Bar",[3712]="Turtle Meat",[3713]="Soothing Spices",[3719]="Hillman's Cloak",[3730]="Big Bear Meat",[3818]="Fadeleaf",[3820]="Stranglekelp",[3821]="Goldthorn",[3823]="Lesser Invisibility Potion",[3824]="Shadow Oil",[3829]="Frost Oil",[3848]="Big Bronze Knife",[3853]="Moonsteel Broadsword",[3859]="Steel Bar",[3860]="Mithril Bar",[3864]="Citrine",[4231]="Cured Light Hide",[4232]="Medium Hide",[4233]="Cured Medium Hide",[4234]="Heavy Leather",[4235]="Heavy Hide",[4236]="Cured Heavy Hide",[4239]="Embossed Leather Gloves",[4251]="Hillman's Shoulders",[4255]="Green Leather Armor",[4257]="Green Leather Belt",[4265]="Heavy Armor Kit",[4289]="Salt",[4291]="Silken Thread",[4304]="Thick Leather",[4305]="Bolt of Silk Cloth",[4306]="Silk Cloth",[4312]="Soft-soled Linen Boots",[4314]="Double-Stitched Woolen Shoulders",[4318]="Gloves of Meditation",[4327]="Icy Cloak",[4336]="Black Swashbuckler's Shirt",[4337]="Thick Spider's Silk",[4338]="Mageweave Cloth",[4339]="Bolt of Mageweave",[4342]="Purple Dye",[4357]="Rough Blasting Powder",[4358]="Rough Dynamite",[4359]="Handful of Copper Bolts",[4361]="Copper Tube",[4362]="Rough Boomstick",[4363]="Copper Modulator",[4364]="Coarse Blasting Powder",[4368]="Flying Tiger Goggles",[4369]="Deadly Blunderbuss",[4371]="Bronze Tube",[4372]="Lovingly Crafted Boomstick",[4375]="Whirring Bronze Gizmo",[4377]="Heavy Blasting Powder",[4381]="Minor Recombobulator",[4382]="Bronze Framework",[4385]="Green Tinted Goggles",[4387]="Iron Strut",[4389]="Gyrochronatom",[4392]="Advanced Target Dummy",[4393]="Craftsman's Monocle",[4399]="Wooden Stock",[4400]="Heavy Stock",[4402]="Small Flame Sac",[4404]="Silver Contact",[4407]="Accurate Scope",[4470]="Simple Wood",[4655]="Giant Clam Meat",[5500]="Iridescent Pearl",[5503]="Clam Meat",[5504]="Tangy Clam Meat",[5507]="Ornate Spyglass",[5525]="Boiled Clams",[5527]="Goblin Deviled Clams",[5541]="Iridescent Hammer",[5631]="Rage Potion",[5635]="Sharp Claw",[5637]="Large Fang",[5957]="Handstitched Leather Vest",[5963]="Barbaric Leggings",[5964]="Barbaric Shoulders",[5966]="Guardian Gloves",[5996]="Draught of Water Breathing",[5997]="Elixir of Minor Defense",[6037]="Truesilver Bar",[6038]="Giant Clam Scorcho",[6040]="Golden Scale Bracers",[6048]="Shadow Protection Potion",[6049]="Fire Protection Potion",[6214]="Heavy Copper Maul",[6260]="Blue Dye",[6263]="Blue Overalls",[6370]="Blackmouth Oil",[6371]="Fire Oil",[6450]="Silk Bandage",[6451]="Heavy Silk Bandage",[6662]="Elixir of Giant Growth",[6795]="White Swashbuckler's Shirt",[6890]="Smoked Bear Meat",[7047]="Hands of Darkness",[7052]="Azure Silk Belt",[7055]="Crimson Silk Belt",[7067]="Elemental Earth",[7068]="Elemental Fire",[7069]="Elemental Air",[7070]="Elemental Water",[7071]="Iron Buckle",[7075]="Core of Earth",[7076]="Essence of Earth",[7077]="Heart of Fire",[7079]="Globe of Water",[7080]="Essence of Water",[7191]="Fused Wiring",[7282]="Light Leather Pants",[7286]="Black Whelp Scale",[7349]="Herbalist's Gloves",[7909]="Aquamarine",[7910]="Star Ruby",[7928]="Ornate Mithril Shoulders",[7938]="Truesilver Gauntlets",[7941]="Heavy Mithril Axe",[7943]="Wicked Mithril Blade",[7945]="Big Black Mace",[7947]="Ebon Shiv",[7955]="Copper Claymore",[7956]="Bronze Warhammer",[7966]="Solid Grinding Stone",[7967]="Mithril Shield Spike",[7971]="Black Pearl",[8068]="Crafted Heavy Shot",[8153]="Wildvine",[8165]="Worn Dragonscale",[8167]="Turtle Scale",[8170]="Rugged Leather",[8171]="Rugged Hide",[8172]="Cured Thick Hide",[8187]="Turtle Scale Gloves",[8189]="Turtle Scale Breastplate",[8191]="Turtle Scale Helm",[8192]="Nightscape Shoulders",[8197]="Nightscape Boots",[8343]="Heavy Silken Thread",[8347]="Dragonscale Gauntlets",[8348]="Helm of Fire",[8367]="Dragonscale Breastplate",[8544]="Mageweave Bandage",[8545]="Heavy Mageweave Bandage",[8766]="Morning Glory Dew",[8831]="Purple Lotus",[8838]="Sungrass",[8839]="Blindweed",[8845]="Ghost Mushroom",[8846]="Gromsblood",[8925]="Crystal Vial",[8949]="Elixir of Agility",[9060]="Inlaid Mithril Cylinder",[9061]="Goblin Rocket Fuel",[9187]="Elixir of Greater Agility",[9210]="Ghost Dye",[9233]="Draught of Detect Demon",[9999]="Black Mageweave Leggings",[10002]="Shadoweave Pants",[10008]="White Bandit Mask",[10025]="Shadoweave Mask",[10026]="Black Mageweave Boots",[10028]="Shadoweave Shoulders",[10048]="Colorful Kilt",[10285]="Shadow Silk",[10505]="Solid Blasting Powder",[10546]="Deadly Scope",[10558]="Gold Power Core",[10559]="Mithril Tube",[10560]="Unstable Trigger",[10561]="Mithril Casing",[10562]="Hi-Explosive Bomb",[10576]="Mithril Mechanical Dragonling",[10586]="The Big One",[10644]="Recipe: Goblin Rocket Fuel",[10647]="Engineer's Ink",[10648]="Blank Parchment",[10841]="Goldthorn Tea",[10938]="Lesser Magic Essence",[10940]="Strange Dust",[10978]="Small Glimmering Shard",[11083]="Soul Dust",[11134]="Lesser Mystic Essence",[11137]="Vision Dust",[11174]="Lesser Nether Essence",[11176]="Dream Dust",[11178]="Large Radiant Shard",[11186]="Red Power Crystal",[11287]="Lesser Magic Wand",[11288]="Greater Magic Wand",[11291]="Star Wood",[11371]="Dark Iron Bar",[11590]="Mechanical Repair Kit",[12184]="Raptor Flesh",[12202]="Tiger Meat",[12203]="Red Wolf Meat",[12205]="White Spider Meat",[12208]="Tender Wolf Meat",[12209]="Lean Wolf Steak",[12223]="Meaty Bat Wing",[12224]="Crispy Bat Wing",[12359]="Thorium Bar",[12360]="Arcanite Bar",[12363]="Arcane Crystal",[12414]="Thorium Leggings",[12416]="Radiant Belt",[12420]="Radiant Leggings",[12633]="Whitesoul Helm",[12644]="Dense Grinding Stone",[12655]="Enchanted Thorium Bar",[12775]="Huge Thorium Battleaxe",[12800]="Azerothian Diamond",[12803]="Living Essence",[12808]="Essence of Undeath",[12810]="Enchanted Leather",[13423]="Stonescale Oil",[13444]="Major Mana Potion",[13445]="Elixir of Greater Defense",[13446]="Major Healing Potion",[13454]="Greater Arcane Elixir",[13459]="Greater Shadow Protection Potion",[13463]="Dreamfoil",[13464]="Golden Sansam",[13465]="Mountain Silversage",[13467]="Icecap",[13468]="Black Lotus",[13511]="Flask of Distilled Wisdom",[13512]="Flask of Supreme Power",[13759]="Raw Nightfin Snapper",[13856]="Runecloth Belt",[13867]="Runecloth Shoulders",[13893]="Large Raw Mightfish",[13931]="Nightfin Soup",[13934]="Mightfish Steak",[14047]="Runecloth",[14048]="Bolt of Runecloth",[14107]="Felcloth Pants",[14136]="Robe of Winter Night",[14155]="Mooncloth Bag",[14227]="Ironweb Spider Silk",[14256]="Felcloth",[14341]="Rune Thread",[14342]="Mooncloth",[14529]="Runecloth Bandage",[14530]="Heavy Runecloth Bandage",[15065]="Warbear Woolies",[15066]="Ironfeather Breastplate",[15075]="Chimeric Vest",[15076]="Heavy Scorpid Vest",[15077]="Heavy Scorpid Bracers",[15407]="Cured Rugged Hide",[15408]="Heavy Scorpid Scale",[15409]="Refined Deeprock Salt",[15412]="Green Dragonscale",[15416]="Black Dragonscale",[15419]="Warbear Leather",[15420]="Ironfeather",[15423]="Chimera Leather",[15564]="Rugged Armor Kit",[15846]="Salt Shaker",[15871]="Truesilver Skeleton Key",[15992]="Dense Blasting Powder",[15994]="Thorium Widget",[15996]="Lifelike Mechanical Toad",[16005]="Dark Iron Bomb",[16006]="Delicate Arcanite Converter",[16202]="Lesser Eternal Essence",[16203]="Greater Eternal Essence",[16206]="Arcanite Rod",[17222]="Spider Sausage",[18045]="Tender Wolf Steak",[18232]="Field Repair Bot 74A",[18254]="Runn Tum Tuber Surprise",[18255]="Runn Tum Tuber",[18256]="Imbued Vial",[18587]="Goblin Jumper Cables XL",[18594]="Powerful Seaforium Charge",[18631]="Truesilver Transformer",[18984]="Dimensional Ripper - Everlook",[18986]="Ultrasafe Transporter: Gadgetzan",[19047]="Wisdom of the Timbermaw",[20296]="Green Dragonscale Gauntlets",[20575]="Black Whelp Tunic",[20747]="Lesser Mana Oil",[22248]="Enchanted Runecloth Bag",[247239]="Lesser Discolored Healing Potion",[247242]="Superior Discolored Healing Potion",[247754]="Minor Arcane Elixir",[247786]="Mote of Magic",[247789]="Novice's Practice Wand",[248819]="Fel Crystal",[248824]="Fel Hide",[248825]="Fel Leather",[249144]="Twisted Nether Wand",[249232]="Lesser Eternal Wand",[249274]="Stranglevine",[249409]="Cerulean Dye",[249428]="Pristine Hide",[249429]="Pristine Scale",[249430]="Magenta Dye",[249431]="Viridian Dye",[249868]="Triage Tea",[249870]="Sage's Tea",[249871]="Venomous Smoothie",[249874]="Calcified Smoothie",[250067]="Bat Hachee",[250068]="Savory Turtle Stew",[250069]="Flank au Poivre",[250070]="Bear Bruscitti",[250072]="Swiftstrike Steak",[250075]="Prehistoric Pulled Raptor",[250077]="Twice-Spiced Raptor Slice",[250338]="Elixir of Sages",[250348]="Elixir of the Whale",[250350]="Elixir of Ferocity",[250351]="Elixir of the Grizzly",[250541]="Shining Mithril Pauldrons",[250542]="Shining Mithril Boots",[250544]="Shining Mithril Pants",[250605]="Steel Spear",[251290]="Legionite Bar",[251291]="Heavy Thorium Bar",[252453]="Forceful Heavy Armor Kit",[252482]="Blue Suede Hat",[252487]="Mystic Rugged Armor Kit",[252581]="Charged Scorpid Helm",[252593]="Charged Scorpid Bracers",[252594]="Heavy Scorpid Boots",[252598]="Charged Scorpid Vest",[252605]="Black Dragonscale Helm",[254015]="Earthen Silk Hood",[254021]="Gilded Handwraps",[254079]="Runecloth Reagent Bag",[254123]="Runecloth Cuffs",[255716]="Simple Poultice",[255719]="Powerful Poultice",[260801]="EZ-Thro Fireproof Fuse",[260802]="EZ-Thro Bronze Mortar",[273127]="Golem Heart",[273130]="Undeath Engine",[277050]="Azure Gustwoven Hood",[277052]="Azure Windraveled Cover",[279943]="Spinning Wheel",[279945]="Sewing Machine",[279955]="Master Forge",[279961]="Journeyman Campfire Kit",[279985]="Arcane Salvager",[284869]="Unsanctified Grenade"}

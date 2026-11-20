@@ -259,6 +259,21 @@ dl.kv dd{margin:0}
 .ad-feat b{display:block;color:var(--ink);font-size:14px;margin-bottom:3px}
 kbd{font:600 12px var(--f-num);background:var(--sunk);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px}
 .top-r .btn{height:32px}
+/* budget */
+.goldin{display:flex;align-items:center;height:38px;border:1px solid var(--line);border-radius:9px;background:var(--panel);overflow:hidden}
+.goldin input{width:86px;height:100%;border:0;background:transparent;font:600 15px var(--f-num);padding:0 0 0 11px;color:var(--ink);-moz-appearance:textfield;appearance:textfield}
+.goldin input:focus-visible{outline:2px solid var(--acc);outline-offset:-2px}
+.goldin input::placeholder{color:var(--ink-3);font-weight:500}
+.goldin span{padding:0 10px 0 2px;color:var(--gold);font:600 14px var(--f-num)}
+.budget{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--pos);border-radius:var(--r);padding:12px 16px;margin:0 0 18px;font-size:14px;color:var(--ink-2)}
+.budget.adj{border-left-color:var(--gold)}
+.budget.no{border-left-color:var(--neg)}
+.budget b{color:var(--ink)}
+.budget .bt{flex:1 1 380px}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.chk input{width:15px;height:15px;accent-color:var(--acc);margin:0}
+.oc .bfit{font-size:11.5px;font-weight:600;margin-top:4px}
+.oc .bfit.ok{color:var(--pos)}.oc .bfit.adj{color:var(--gold)}.oc .bfit.no{color:var(--neg)}
 details.filters{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:0 0 18px}
 details.filters summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 16px;font-size:13.5px;color:var(--ink-2)}
 details.filters summary::-webkit-details-marker{display:none}
@@ -560,16 +575,16 @@ const FISH_ITEMS=[13893,13759,4655,5504,5503,5500,7971];
 
 /* ---------- state ---------- */
 const DEF_F={minSold:3,minListed:5,cut:5};
-const DEF={variant:'best',horizon:1,theme:'auto',skill:{tailoring:140,alchemy:210},filters:DEF_F};
+const DEF={variant:'best',horizon:1,theme:'auto',skill:{tailoring:140,alchemy:210},filters:DEF_F,gold:null,sales:true};
 let S=load(); S.view='overview'; S.open={};
 function load(){
   try{const v=JSON.parse(localStorage.getItem(KEY)||'null');
-    if(v&&typeof v==='object')return {variant:v.variant==='trainer'?'trainer':'best',horizon:[1,3,7].includes(v.horizon)?v.horizon:1,theme:['auto','light','dark'].includes(v.theme)?v.theme:'auto',skill:Object.assign({},DEF.skill,v.skill||{}),filters:cleanF(v.filters)};
+    if(v&&typeof v==='object')return {variant:v.variant==='trainer'?'trainer':'best',horizon:[1,3,7].includes(v.horizon)?v.horizon:1,theme:['auto','light','dark'].includes(v.theme)?v.theme:'auto',skill:Object.assign({},DEF.skill,v.skill||{}),filters:cleanF(v.filters),gold:(typeof v.gold==='number'&&v.gold>=0)?v.gold:null,sales:v.sales!==false};
   }catch(e){}
   return JSON.parse(JSON.stringify(DEF));
 }
 function cleanF(f){f=f||{};const n=(v,d,hi)=>{v=+v;return Number.isFinite(v)&&v>=0?Math.min(hi,v):d};return {minSold:Math.round(n(f.minSold,DEF_F.minSold,100000)*10)/10,minListed:Math.round(n(f.minListed,DEF_F.minListed,100000)),cut:+f.cut===15?15:5}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({variant:S.variant,horizon:S.horizon,theme:S.theme,skill:S.skill,filters:S.filters}))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({variant:S.variant,horizon:S.horizon,theme:S.theme,skill:S.skill,filters:S.filters,gold:S.gold,sales:S.sales}))}catch(e){}}
 const sk=id=>{const v=+S.skill[id];return v>=1&&v<=300?Math.round(v):1};
 
 /* ---------- helpers ---------- */
@@ -627,6 +642,35 @@ function shopping(R,calc){
   R.forEach((st,i)=>{const c=calc.steps[i];if(!c.rc)return;st[17].forEach(([id,n])=>m.set(id,(m.get(id)||0)+n*c.rc))});
   return [...m].map(([id,q])=>{const qq=Math.ceil(q-1e-6);const p=PRICES[id];return {id,q:qq,unit:p?p[0]:null,how:p?p[1]:'',total:p?qq*p[0]:0}}).sort((a,b)=>b.total-a.total);
 }
+// gold needed at most while you level from skill s (buy each step's mats, craft, then sell before the next step)
+function peakCalc(R,s,H,sales){
+  const C=routeCalc(R,s,H);let c=0,peak=0;
+  C.steps.forEach(x=>{if(x.done)return;c+=x.mats+x.pat;if(c>peak)peak=c;if(sales)c-=x.val});
+  return {peak,C};
+}
+// pick the best route from the budget family that fits the player's gold
+function pickRoute(slug,v,s){
+  const P=D.profs[slug],base=P[v],H=S.horizon;
+  if(S.gold==null||!P.fam||!P.fam[v]){const pc=peakCalc(base,s,H,S.sales);return {R:base,key:0,C:pc.C,peak:pc.peak,info:S.gold==null?null:{nofam:true}}}
+  const budget=S.gold*10000,seen=new Map();
+  P.fam[v].forEach(i=>{if(!seen.has(i))seen.set(i,i===0?base:P.alts[i-1])});
+  let best=null,min=null,def=null;
+  seen.forEach((R,i)=>{const pc=peakCalc(R,s,H,S.sales);const o={R,key:i,C:pc.C,peak:pc.peak};if(i===0)def=o;
+    if(pc.peak<=budget&&(!best||o.C.T.net>best.C.T.net))best=o;if(!min||o.peak<min.peak)min=o});
+  // the normal route wins whenever it fits, so a big budget never changes anything
+  const pick=def.peak<=budget?def:(best||min);
+  pick.info={fits:pick.peak<=budget,budget,def,isDefault:pick.key===0};
+  return pick;
+}
+function budgetBanner(PK){
+  const i=PK.info;if(!i)return '';
+  const box=(cls,txt)=>'<section class="budget '+cls+'"><span class="bt">'+txt+'</span><label class="chk"><input type="checkbox" id="sales"'+(S.sales?' checked':'')+'>Count on selling as I go</label></section>';
+  if(i.nofam)return box('adj','Budget routes need live prices – showing the normal route for now.');
+  const g=money(i.budget,{short:true}),pk=money(PK.peak,{short:true});
+  if(!i.fits)return box('no','<b>No route fits '+g+'.</b> Showing the one that needs the least gold: '+pk+' at most. Sell or farm a little first, or level part of the way.');
+  if(i.isDefault)return box('ok','<b>Fits your '+g+'.</b> The normal route needs '+pk+' at most'+(S.sales?' when you sell as you go':'')+'.');
+  return box('adj','<b>Adjusted for your '+g+':</b> this route needs '+pk+' at most and nets '+money(PK.C.T.net,{sign:true,short:true})+'. The normal route would need '+money(i.def.peak,{short:true})+' (net '+money(i.def.C.T.net,{sign:true,short:true})+').');
+}
 function curStep(R,s){return R.findIndex(st=>s>=st[0]&&s<st[1])}
 
 /* ---------- rail / chrome ---------- */
@@ -649,6 +693,7 @@ function controls(showSkill,id){
   let h='';
   if(showSkill){const s=sk(id);h+='<label class="fld"><span>Your skill</span><div class="stepper"><button type="button" data-act="dec" aria-label="Decrease skill">−</button><input id="skill" type="number" min="1" max="300" step="1" inputmode="numeric" value="'+s+'" aria-label="Your skill"><button type="button" data-act="inc" aria-label="Increase skill">+</button></div></label>'}
   if(!id||PBY[id].kind==='craft'){
+    h+='<label class="fld"><span>Your gold</span><div class="goldin"><input id="gold" type="number" min="0" step="1" inputmode="numeric" placeholder="any" value="'+(S.gold!=null?S.gold:'')+'" aria-label="Gold you have"><span>g</span></div></label>';
     h+='<div class="fld"><span>Route</span><div class="seg" role="group" aria-label="Route variant"><button type="button" data-variant="best" aria-pressed="'+(S.variant==='best')+'">Best route</button><button type="button" data-variant="trainer" aria-pressed="'+(S.variant==='trainer')+'">Trainer only</button></div></div>';
     h+='<label class="fld"><span>Count AH sales over</span><select id="horizon">'+[1,3,7].map(v=>'<option value="'+v+'"'+(S.horizon===v?' selected':'')+'>'+v+(v===1?' day':' days')+'</option>').join('')+'</select></label>';
   }
@@ -664,10 +709,11 @@ function viewOverview(){
   let h='<section class="ov-hero"><div><h1>Profession routes <em>1–300</em></h1><p>The cheapest way up in every profession in WoW: Forever, calculated from '+(isLive()?'live AH prices on '+esc(D.market)+' – routes are recalculated every '+(D.refreshMinutes||30)+' minutes':'AH prices on '+esc(D.market)+', '+esc(D.asOf))+'. Pick a profession, enter your skill, and get the rest of the route, a shopping list and what makes gold along the way.</p></div>'+controls(false)+'</section>'+filterPanel();
   h+='<h2 class="ov-h">Crafting <small>net = sale value − mats − patterns for the rest of the route</small></h2><section class="ov-grid">';
   PROFS.filter(p=>p.kind==='craft').forEach(p=>{
-    const R=D.profs[p.id][S.variant],s=sk(p.id),C=routeCalc(R,s,S.horizon);
+    const s=sk(p.id),PK=pickRoute(p.id,S.variant,s),R=PK.R,C=PK.C;
+    const bf=PK.info&&!PK.info.nofam?(PK.info.fits?(PK.info.isDefault?'<div class="bfit ok">Fits your gold</div>':'<div class="bfit adj">Adjusted to your gold</div>'):'<div class="bfit no">Needs '+moneyText(PK.peak).replace(/ \d+c$/,'')+'</div>'):'';
     const strip=R.map(st=>'<i class="'+(s>=st[1]?'done':'')+'" style="flex:'+(st[1]-st[0])+'"></i>').join('');
     h+='<a class="oc" href="#'+p.id+'" style="--acc:'+p.hue+'"><div class="oc-top"><span class="gl">'+ICON[p.id]+'</span><span class="oc-nm">'+p.name+'</span>'+(s>1?'<span class="oc-sk">'+s+'/300</span>':'')+'</div>'+
-      '<div class="oc-net">'+(s>=300?'<span class="m pos">Done</span>':money(C.T.net,{sign:true,short:true}))+'<small>net '+(s>1?'from '+s+' to 300':'1–300')+'</small></div>'+
+      '<div class="oc-net">'+(s>=300?'<span class="m pos">Done</span>':money(C.T.net,{sign:true,short:true}))+'<small>net '+(s>1?'from '+s+' to 300':'1–300')+'</small>'+bf+'</div>'+
       '<div class="oc-strip">'+strip+'</div>'+
       '<dl class="oc-dl"><div><dt>Mats</dt><dd>'+money(C.T.mats,{short:true})+'</dd></div><div><dt>Crafts</dt><dd>'+nf(C.T.crafts)+'</dd></div><div><dt>Steps</dt><dd>'+R.length+'</dd></div></dl></a>';
   });
@@ -682,18 +728,19 @@ function viewOverview(){
 
 /* ---------- craft view ---------- */
 function viewCraft(P){
-  const R=D.profs[P.id][S.variant],s=sk(P.id),H=S.horizon,C=routeCalc(R,s,H),T=C.T;
-  const ci=curStep(R,s),okey=P.id+':'+S.variant;
+  const s=sk(P.id),H=S.horizon,PK=pickRoute(P.id,S.variant,s),R=PK.R,C=PK.C,T=C.T;
+  const ci=curStep(R,s),okey=P.id+':'+S.variant+':'+PK.key;
   const open=S.open[okey]||(S.open[okey]=new Set(ci>=0?[ci]:[]));
   let h=profHead(P)+filterPanel();
   // stats
   const left=300-s;
   h+='<dl class="stats">'+
     '<div class="stat"><dt>Remaining</dt><dd>'+left+' <span class="muted" style="font-size:13px">points</span></dd><small>≈ '+nf(T.crafts)+' crafts</small></div>'+
-    '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>to buy for the rest of the route</small></div>'+
+    '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>needs '+money(PK.peak,{short:true})+' at most'+(S.sales?', selling as you go':'')+'</small></div>'+
     '<div class="stat"><dt>Sale value</dt><dd>'+money(T.val,{short:true})+'</dd><small>after the '+cutPct()+'% AH cut</small></div>'+
     '<div class="stat"><dt>Patterns</dt><dd>'+money(T.pat,{short:true})+'</dd><small>recipes from the AH</small></div>'+
     '<div class="stat hl"><dt>Net</dt><dd>'+money(T.net,{sign:true,short:true})+'</dd><small>'+(T.net>=0?'you make money levelling':'cost to reach 300')+'</small></div></dl>';
+  h+=budgetBanner(PK);
   // track
   let segs='';R.forEach((st,i)=>{const cls=s>=st[1]?'done':(s>st[0]?'cur':'');const p=cls==='cur'?((s-st[0])/(st[1]-st[0])*100).toFixed(1)+'%':'0%';
     segs+='<button type="button" class="sb '+cls+'" style="flex:'+(st[1]-st[0])+';--p:'+p+'" data-jump="'+i+'" title="'+st[0]+'–'+st[1]+': '+esc(st[2])+'" aria-label="Step '+st[0]+' to '+st[1]+'"></button>'});
@@ -849,6 +896,7 @@ function methodBlock(){
     '<li>At every skill level the recipe with the lowest cost per skill point is picked: mats minus expected sale value, plus the pattern price the first time, with a small surcharge for time and tied-up gold, and a small penalty for switching recipes often.</li>'+
     '<li>Skill-up chance: orange 100%, yellow and green (grey − skill) / (grey − yellow), grey 0%. “Crafts” is the expected number.</li>'+
     '<li>Sale value is the AH price after the AH cut ('+cutPct()+'%), but only for as many as the market trades over the chosen number of days – the rest is counted at vendor price. If a vendor pays more than the AH, the vendor price is used.</li>'+
+    '<li>Your gold: the server also builds a family of routes with a growing penalty on gold tied up in mats and patterns. The page picks the one with the best net result that never needs more gold than you have – counting on selling what you craft before the next step, unless you untick that.</li>'+
     '<li>Filters: items that sell fewer than '+fmt1(fv().minSold)+' per day or have fewer than '+fv().minListed+' listed are ignored on the AH. They are not bought there (vendor or crafting is used instead, or the recipe is skipped), and their AH price is not counted when selling.</li>'+
     '<li>Left out of the routes: recipes with a cooldown (transmutes, Mooncloth, salt), Gnomish/Goblin specialization, reputation recipes and recipes with an unknown source. Drop and quest patterns are only used when they cost 6g or less on the AH.</li>'+
     '<li>Mats price is the cheapest of AH, vendor and crafting it yourself. “Trainer only” uses trainer recipes as far as possible, and vendor/drop recipes only where the trainer has nothing that gives points.</li>'+
@@ -934,7 +982,8 @@ function render(keepFocus){
   main.innerHTML=S.view==='addon'?viewAddon():!P?viewOverview():P.kind==='craft'?viewCraft(P):viewGather(P);
   if(keepFocus){const i=document.getElementById(typeof keepFocus==='string'?keepFocus:'skill');if(i){i.focus();if(i.tagName==='INPUT'){try{const v=i.value;i.value='';i.value=v}catch(e){}}}}
 }
-function setSkill(v,keep){const P=PBY[S.view];if(!P)return;v=Math.max(1,Math.min(300,Math.round(+v||1)));S.skill[P.id]=v;const ok=P.id+':'+S.variant;delete S.open[ok];save();render(keep)}
+function setSkill(v,keep){const P=PBY[S.view];if(!P)return;v=Math.max(1,Math.min(300,Math.round(+v||1)));S.skill[P.id]=v;Object.keys(S.open).forEach(k=>{if(k.indexOf(P.id+':')===0)delete S.open[k]});save();render(keep)}
+function setGold(v,keep){S.gold=(v===''||v==null||!isFinite(+v))?null:Math.max(0,Math.round(+v));save();render(keep)}
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('on'),1800)}
 function copyText(t,msg){
   const done=()=>toast(msg||'Shopping list copied');
@@ -951,11 +1000,12 @@ document.addEventListener('click',e=>{
   if(t.dataset.jump!=null){const i=+t.dataset.jump;const P=PBY[S.view];const k=P.id+':'+S.variant;const set=S.open[k]||(S.open[k]=new Set());set.add(i);const el=document.getElementById('st-'+i);if(el){el.classList.add('open');el.querySelector('.st-main').setAttribute('aria-expanded','true');el.scrollIntoView({behavior:'smooth',block:'center'})}return}
   if(t.dataset.copy){copyText(t.dataset.copy,'Copied');return}
   if(t.dataset.act==='freset'){setFilters(Object.assign({},DEF_F));return}
-  if(t.dataset.act==='copy'){const P=PBY[S.view];const R=D.profs[P.id][S.variant];const s=sk(P.id);const list=shopping(R,routeCalc(R,s,S.horizon));
+  if(t.dataset.act==='copy'){const P=PBY[S.view];const s=sk(P.id);const R=pickRoute(P.id,S.variant,s).R;const list=shopping(R,routeCalc(R,s,S.horizon));
     copyText('Shopping list '+P.name+' '+s+'→300\n'+list.map(x=>iname(x.id)+' x'+x.q).join('\n'));return}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='horizon'){S.horizon=+e.target.value;save();render();return}
+  if(e.target.id==='sales'){S.sales=e.target.checked;save();render();return}
   if(e.target.id==='f-cut'){setFilters(Object.assign({},S.filters,{cut:+e.target.value}),'f-cut');return}
   if(e.target.id==='skill'){setSkill(e.target.value)}
 });
@@ -963,9 +1013,10 @@ let fT;
 function setFilters(f,focusId){S.filters=cleanF(f);save();const hint=document.getElementById('fhint');if(hint)hint.textContent='Recalculating…';clearTimeout(fT);fT=setTimeout(()=>{render(focusId||false);loadData()},350)}
 document.addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('filters'))S.fOpen=e.target.open},true);
 let skT;
-document.addEventListener('input',e=>{if(e.target.id==='f-minSold'||e.target.id==='f-minListed'){const v=e.target.value;if(v==='')return;const f=Object.assign({},S.filters);f[e.target.id.slice(2)]=+v;clearTimeout(skT);skT=setTimeout(()=>setFilters(f,e.target.id),500);return}
+document.addEventListener('input',e=>{if(e.target.id==='gold'){const v=e.target.value;clearTimeout(skT);skT=setTimeout(()=>setGold(v,'gold'),450);return}
+  if(e.target.id==='f-minSold'||e.target.id==='f-minListed'){const v=e.target.value;if(v==='')return;const f=Object.assign({},S.filters);f[e.target.id.slice(2)]=+v;clearTimeout(skT);skT=setTimeout(()=>setFilters(f,e.target.id),500);return}
   if(e.target.id!=='skill')return;clearTimeout(skT);const v=e.target.value;if(v==='')return;skT=setTimeout(()=>setSkill(v,true),450)});
-document.addEventListener('keydown',e=>{if(e.target.id==='skill'&&e.key==='Enter'){clearTimeout(skT);setSkill(e.target.value,true)}});
+document.addEventListener('keydown',e=>{if(e.target.id==='skill'&&e.key==='Enter'){clearTimeout(skT);setSkill(e.target.value,true)}if(e.target.id==='gold'&&e.key==='Enter'){clearTimeout(skT);setGold(e.target.value,'gold')}});
 window.addEventListener('hashchange',()=>{route();render();window.scrollTo(0,0)});
 
 /* ---------- live data ---------- */

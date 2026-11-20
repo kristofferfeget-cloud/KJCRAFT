@@ -474,6 +474,14 @@ function UI:BuildProfPage()
   self.varTrainer.tip = { "Trainer only", "Trainer recipes as far as possible. Vendor or drop recipes only where the trainer has nothing that gives points." }
   self.goldBtn.tip = { "Gold tips", "What is worth crafting for gold in this profession right now." }
   self.goldBtn:SetScript("OnClick", function() UI:SetMode("gold") end)
+  self.budgetBtn = FlatButton(page, 150, 18, "Budget: off", 9.5)
+  self.budgetBtn:SetPoint("TOPRIGHT", -16, -44)
+  self.budgetBtn:SetScript("OnClick", function()
+    local b = ns.db.budget
+    b.mode = (b.mode == "off") and "auto" or "off"
+    UI:Refresh(true)
+  end)
+  self.budgetBtn.tip = { "Plan for your gold", "Picks the best route that never needs more gold than you have. Click: off / the gold you carry. Type /cpath gold 150 for a fixed amount, /cpath sales to stop counting on selling as you go." }
   self.varBest:SetScript("OnClick", function() UI:SetVariant("best") end)
   self.varTrainer:SetScript("OnClick", function() UI:SetVariant("trainer") end)
 
@@ -1546,9 +1554,12 @@ function UI:Refresh(scrollToCurrent)
   self.goldPage:Hide()
   self.profPage:Show()
   local p = ns.PROF_BY_KEY[key]
-  local route, variant = ns.Route(key)
+  local route, variant, binfo = ns.Route(key)
   local skill = ns.GetSkill(key)
   local cur = ns.CurrentIndex(route, skill)
+  local bmode = ns.db.budget.mode
+  self.budgetBtn.text:SetText(bmode == "off" and "Budget: off" or (bmode == "auto" and "Budget: your gold" or ("Budget: " .. ns.Money(ns.db.budget.gold))))
+  self.budgetBtn:SetActive(bmode ~= "off", accent)
 
   self.headIcon.tex:SetTexture(p.icon)
   self.subtitle:SetText(format("%s  ·  %s  ·  1-%d", p.name, variant == "trainer" and "Trainer only" or "Best route", ns.MAX_SKILL))
@@ -1564,6 +1575,12 @@ function UI:Refresh(scrollToCurrent)
     self.stepText:SetText("Route complete")
   else
     self.stepText:SetText(format("Step %d of %d", cur, #route))
+  end
+  if binfo and skill then
+    local col = binfo.fits and (binfo.default and C.pos or C.gold) or C.neg
+    local txt = binfo.fits and (binfo.default and "fits " or "adjusted to ") or "nothing fits "
+    self.stepText:SetText((self.stepText.GetText and self.stepText:GetText() or "") .. "  ·  " .. Hex(col) .. txt .. "|r" .. ns.Money(binfo.budget)
+      .. Hex(C.mute) .. "  (needs |r" .. ns.Money(binfo.peak) .. Hex(C.mute) .. ")|r")
   end
 
   self:RenderBar(key, route, skill)

@@ -98,6 +98,11 @@ export function buildDataLua(payload, baseUrl) {
     L.push('  gold = {');
     for (const g of p.gold) L.push('    ' + luaVal(g) + ',');
     L.push('  },');
+    const pad = (st) => luaVal(st.slice(0, 22).concat(Array(Math.max(0, 22 - st.length)).fill(null)));
+    L.push('  alts = {');
+    for (const r of p.alts || []) { L.push('    {'); for (const st of r) L.push('      ' + pad(st) + ','); L.push('    },'); }
+    L.push('  },');
+    if (p.fam) L.push(`  fam = { best = ${luaVal(p.fam.best)}, trainer = ${luaVal(p.fam.trainer)} },`);
     L.push('}');
   }
   L.push(`R.names = ${idMap(names, luaStr)}`);
