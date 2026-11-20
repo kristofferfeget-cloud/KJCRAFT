@@ -1,0 +1,17 @@
+{
+  "name": "wow-forever-yrkesruter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Billigste vei fra 1 til 300 i alle yrker i WoW: Forever, regnet ut fra live AH-priser.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "offline": "OFFLINE=1 node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
