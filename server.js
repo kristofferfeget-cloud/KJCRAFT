@@ -1,4 +1,4 @@
-// WoW Forever yrkesruter – small server that keeps AH prices fresh and serves the site.
+// WoW Forever profession routes – small server that keeps AH prices fresh and serves the site.
 import http from 'node:http';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
@@ -19,7 +19,7 @@ const OFFLINE = process.env.OFFLINE === '1'; // serve the bundled snapshot only 
 const overrides = JSON.parse(await readFile(path.join(ROOT, 'data', 'overrides.json'), 'utf8'));
 
 const log = (...a) => console.log(new Date().toISOString(), ...a);
-const fmtDate = (iso) => new Intl.DateTimeFormat('nb-NO', { timeZone: 'Europe/Oslo', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso));
+const fmtDate = (iso) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Oslo', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
 
 const state = {
   payload: null, body: null, gz: null, etag: null,
@@ -71,7 +71,7 @@ async function refresh() {
     const ids = neededIds(state.recipes);
     const { P, BP, names, label, scannedAt, requests } = await fetchPrices(MARKET, ids);
     const priced = Object.keys(P).length;
-    if (priced < Math.max(50, ids.length * 0.2)) throw new Error(`For få priser fra AHledger (${priced} av ${ids.length})`);
+    if (priced < Math.max(50, ids.length * 0.2)) throw new Error(`Too few prices from AHledger (${priced} of ${ids.length})`);
     const out = compute(state.recipes, P, BP);
     for (const id of EXTRA_IDS) if (!out.items[id] && names[id]) out.items[id] = names[id];
     const now = new Date().toISOString();
@@ -128,7 +128,7 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405, { allow: 'GET, HEAD' }); return res.end(); }
   if (url.pathname === '/api/data') {
-    if (!state.body) return sendJSON(req, res, 503, { error: 'Data er ikke klare ennå' });
+    if (!state.body) return sendJSON(req, res, 503, { error: 'Data is not ready yet' });
     return send(req, res, 200, { body: state.body, gz: state.gz, type: TYPES['.json'], etag: state.etag, extra: { 'access-control-allow-origin': '*' } });
   }
   if (url.pathname === '/api/status') {
@@ -144,7 +144,7 @@ const server = http.createServer((req, res) => {
   const f = STATIC.get(url.pathname);
   if (f) return send(req, res, 200, f);
   res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
-  res.end('Ikke funnet');
+  res.end('Not found');
 });
 
 await loadStatic();

@@ -14,13 +14,13 @@ async function getJSON(url, { timeoutMs = 25000, tries = 3 } = {}) {
       const res = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/json' }, signal: AbortSignal.timeout(timeoutMs) });
       if (res.status === 429) {
         const wait = Math.min(60, +(res.headers.get('retry-after') || 10)) * 1000;
-        lastErr = new Error(`429 fra ${new URL(url).host}`);
+        lastErr = new Error(`429 from ${new URL(url).host}`);
         await sleep(wait);
         continue;
       }
-      if (!res.ok) throw new Error(`${res.status} fra ${new URL(url).host}${new URL(url).pathname}`);
+      if (!res.ok) throw new Error(`${res.status} from ${new URL(url).host}${new URL(url).pathname}`);
       const text = await res.text();
-      try { return JSON.parse(text); } catch { throw new Error(`Ugyldig JSON fra ${new URL(url).host} (${text.slice(0, 80).replace(/\s+/g, ' ')})`); }
+      try { return JSON.parse(text); } catch { throw new Error(`Invalid JSON from ${new URL(url).host} (${text.slice(0, 80).replace(/\s+/g, ' ')})`); }
     } catch (e) {
       lastErr = e;
       if (attempt < tries) await sleep(1000 * attempt * attempt);
@@ -36,7 +36,7 @@ export async function fetchSeemeta(slugs) {
   for (const slug of slugs) {
     const j = await getJSON(`${SEEMETA_BASE}/data/wow-forever-professions.en.profession-${slug}.json`, { timeoutMs: 60000 });
     const p = (j.professions || []).find((x) => x.slug === slug);
-    if (!p || !Array.isArray(p.recipes) || !p.recipes.length) throw new Error(`seemeta: fant ingen oppskrifter for ${slug}`);
+    if (!p || !Array.isArray(p.recipes) || !p.recipes.length) throw new Error(`seemeta: no recipes found for ${slug}`);
     profs[slug] = { recipes: p.recipes };
     meta = { build: j.build || null, version: j.version || null, updatedAt: j.updatedAt || null };
   }

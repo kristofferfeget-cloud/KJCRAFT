@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="no">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WoW Forever yrkesruter</title>
-<meta name="description" content="Billigste vei fra 1 til 300 i alle yrker i WoW: Forever, regnet ut fra live AH-priser.">
+<title>WoW Forever profession routes</title>
+<meta name="description" content="The cheapest way from 1 to 300 in every profession in WoW: Forever, calculated from live AH prices.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -358,17 +358,17 @@ footer p{margin:0 0 4px}
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#oversikt" aria-label="Til oversikten">
+  <a class="brand" href="#oversikt" aria-label="Back to the overview">
     <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="8" fill="var(--ink)"/><path d="M9 22l4-12 3 7 3-7 4 12" stroke="var(--panel)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="25" r="1.4" fill="var(--gold)"/></svg>
-    <div><b>Yrkesruter</b><span>WoW: Forever · 1–300</span></div>
+    <div><b>Profession Routes</b><span>WoW: Forever · 1–300</span></div>
   </a>
   <div class="top-r">
-    <span class="chip" id="chip"><i></i>Priser</span>
-    <button class="icon-btn" id="theme" type="button" aria-label="Bytt fargetema"></button>
+    <span class="chip" id="chip"><i></i>Prices</span>
+    <button class="icon-btn" id="theme" type="button" aria-label="Toggle colour theme"></button>
   </div>
 </header>
 <div class="shell">
-  <nav id="rail" aria-label="Yrker"></nav>
+  <nav id="rail" aria-label="Professions"></nav>
   <main id="main"></main>
 </div>
 <footer id="foot"></footer>
@@ -403,23 +403,23 @@ const ICON={
 };
 
 const PROFS=[
-  {id:'alchemy',name:'Alchemy',kind:'craft',hue:'#0f9f80',tag:'Eliksirer, potions, dyes og transmutes'},
-  {id:'blacksmithing',name:'Blacksmithing',kind:'craft',hue:'#5a83b3',tag:'Våpen, platerustning, nøkler og slipesteiner'},
-  {id:'enchanting',name:'Enchanting',kind:'craft',hue:'#8b5cf6',tag:'Fortryllelser, wands og oljer'},
-  {id:'engineering',name:'Engineering',kind:'craft',hue:'#c58f0a',tag:'Bomber, scopes, gadgets og ammo'},
-  {id:'leatherworking',name:'Leatherworking',kind:'craft',hue:'#a5652f',tag:'Lær- og mail-rustning og armor kits'},
-  {id:'tailoring',name:'Tailoring',kind:'craft',hue:'#c43d8c',tag:'Tøyrustning, bags og skjorter'},
-  {id:'cooking',name:'Cooking',kind:'craft',hue:'#df5a2a',tag:'Mat med buffs – sekundært yrke'},
-  {id:'first-aid',name:'First Aid',kind:'craft',hue:'#d23c3c',tag:'Bandasjer og helbredelse – sekundært yrke'},
-  {id:'herbalism',name:'Herbalism',kind:'gather',hue:'#4b9a2a',tag:'Urter til Alchemy, Enchanting-oljer og Cooking'},
-  {id:'mining',name:'Mining',kind:'gather',hue:'#8a7867',tag:'Malm, barer og edelstener'},
-  {id:'skinning',name:'Skinning',kind:'gather',hue:'#a07a45',tag:'Lær, skinn og skjell fra beasts'},
-  {id:'fishing',name:'Fishing',kind:'gather',hue:'#2b82c9',tag:'Fisk til Cooking og First Aid – sekundært yrke'}
+  {id:'alchemy',name:'Alchemy',kind:'craft',hue:'#0f9f80',tag:'Elixirs, potions, dyes and transmutes'},
+  {id:'blacksmithing',name:'Blacksmithing',kind:'craft',hue:'#5a83b3',tag:'Weapons, plate armor, keys and sharpening stones'},
+  {id:'enchanting',name:'Enchanting',kind:'craft',hue:'#8b5cf6',tag:'Enchants, wands and oils'},
+  {id:'engineering',name:'Engineering',kind:'craft',hue:'#c58f0a',tag:'Bombs, scopes, gadgets and ammo'},
+  {id:'leatherworking',name:'Leatherworking',kind:'craft',hue:'#a5652f',tag:'Leather and mail armor, armor kits'},
+  {id:'tailoring',name:'Tailoring',kind:'craft',hue:'#c43d8c',tag:'Cloth armor, bags and shirts'},
+  {id:'cooking',name:'Cooking',kind:'craft',hue:'#df5a2a',tag:'Food with buffs – secondary profession'},
+  {id:'first-aid',name:'First Aid',kind:'craft',hue:'#d23c3c',tag:'Bandages and healing – secondary profession'},
+  {id:'herbalism',name:'Herbalism',kind:'gather',hue:'#4b9a2a',tag:'Herbs for Alchemy, enchanting oils and Cooking'},
+  {id:'mining',name:'Mining',kind:'gather',hue:'#8a7867',tag:'Ore, bars and gems'},
+  {id:'skinning',name:'Skinning',kind:'gather',hue:'#a07a45',tag:'Leather, hides and scales from beasts'},
+  {id:'fishing',name:'Fishing',kind:'gather',hue:'#2b82c9',tag:'Fish for Cooking and First Aid – secondary profession'}
 ];
 const PBY={};PROFS.forEach(p=>PBY[p.id]=p);
 
-const SRC={T:['Trainer','Lær hos trainer'],V:['Vendor','Recipe kjøpes hos vendor'],D:['Drop','Pattern dropper – kjøp på AH'],Q:['Quest','Belønning fra quest'],P:['Pattern','Pattern kjøpes på AH'],R:['Rep','Krever rep hos en faction'],U:['Ukjent','Ukjent hvor den læres']};
-const HOW={AH:'AH',V:'vendor',craft:'lag selv'};
+const SRC={T:['Trainer','Learned from a trainer'],V:['Vendor','Recipe sold by a vendor'],D:['Drop','Pattern drops – buy it on the AH'],Q:['Quest','Quest reward'],P:['Pattern','Pattern bought on the AH'],R:['Rep','Requires faction reputation'],U:['Unknown','Unknown where it is learned']};
+const HOW={AH:'AH',V:'vendor',craft:'craft it'};
 
 /* ---------- gathering data (classic skill thresholds) ---------- */
 const HERBS=[
@@ -428,29 +428,29 @@ const HERBS=[
   ['Earthroot',2449,15,'Dun Morogh, Elwynn, Westfall, Loch Modan, Darkshore'],
   ['Mageroyal',785,50,'Westfall, Loch Modan, Darkshore, Redridge'],
   ['Briarthorn',2450,70,'Westfall, Redridge, Duskwood, Darkshore, Loch Modan'],
-  ['Stranglekelp',3820,85,'Under vann langs kysten: Westfall, Wetlands, Darkshore, STV'],
+  ['Stranglekelp',3820,85,'Underwater along the coast: Westfall, Wetlands, Darkshore, STV'],
   ['Bruiseweed',2453,100,'Redridge, Wetlands, Duskwood, Ashenvale, Stonetalon'],
   ['Wild Steelbloom',3355,115,'Wetlands, Arathi, Stonetalon, Thousand Needles, Badlands'],
-  ['Grave Moss',3369,120,'Kirkegårder: Duskwood, Wetlands, Desolace'],
+  ['Grave Moss',3369,120,'Graveyards: Duskwood, Wetlands, Desolace'],
   ['Kingsblood',3356,125,'Wetlands, Hillsbrad, Arathi, Ashenvale, Duskwood, STV'],
-  ['Liferoot',3357,150,'Ved vann: Wetlands, Hillsbrad, Arathi, STV'],
+  ['Liferoot',3357,150,'Near water: Wetlands, Hillsbrad, Arathi, STV'],
   ['Fadeleaf',3818,160,'Arathi, STV, Swamp of Sorrows, Dustwallow'],
   ['Goldthorn',3821,170,'Arathi, STV, Hinterlands, Dustwallow, Feralas'],
   ["Khadgar's Whisker",3358,185,'Arathi, STV, Hinterlands, Swamp of Sorrows, Feralas'],
   ['Wintersbite',3819,195,'Alterac Mountains'],
   ['Firebloom',4625,205,'Searing Gorge, Badlands, Blasted Lands, Tanaris'],
   ['Purple Lotus',8831,210,'Hinterlands, Feralas, Tanaris, Azshara, STV'],
-  ["Arthas' Tears",8836,220,'Western og Eastern Plaguelands, Felwood'],
+  ["Arthas' Tears",8836,220,'Western and Eastern Plaguelands, Felwood'],
   ['Sungrass',8838,230,"Hinterlands, Feralas, Un'Goro, Azshara, Felwood"],
   ['Blindweed',8839,235,"Swamp of Sorrows, Un'Goro, Dustwallow"],
-  ['Ghost Mushroom',8845,245,"Grotter: Hinterlands (Skulk Rock), Un'Goro, Maraudon"],
+  ['Ghost Mushroom',8845,245,"Caves: Hinterlands (Skulk Rock), Un'Goro, Maraudon"],
   ['Gromsblood',8846,250,'Felwood, Ashenvale, Desolace, Blasted Lands'],
   ['Golden Sansam',13464,260,"Un'Goro, Felwood, Azshara, Feralas, Burning Steppes"],
   ['Dreamfoil',13463,270,"Un'Goro, Felwood, Azshara, Silithus, Winterspring"],
   ['Mountain Silversage',13465,280,"Winterspring, Un'Goro, Felwood, Plaguelands, Silithus"],
-  ['Plaguebloom',13466,285,'Western og Eastern Plaguelands, Felwood'],
+  ['Plaguebloom',13466,285,'Western and Eastern Plaguelands, Felwood'],
   ['Icecap',13467,290,'Winterspring'],
-  ['Black Lotus',13468,300,'Winterspring, Burning Steppes, Silithus, Eastern Plaguelands – sjelden']
+  ['Black Lotus',13468,300,'Winterspring, Burning Steppes, Silithus, Eastern Plaguelands – rare']
 ];
 const HERB_ROUTE=[
   [1,50,'Elwynn · Dun Morogh · Teldrassil','Peacebloom, Silverleaf, Earthroot'],
@@ -464,20 +464,20 @@ const HERB_ROUTE=[
 const VEINS=[
   ['Copper Vein',1,'Dun Morogh, Elwynn, Loch Modan, Darkshore, Westfall','Copper Ore',2840],
   ['Tin Vein',65,'Redridge, Wetlands, Duskwood, Hillsbrad, Ashenvale, STV','Tin Ore',null],
-  ['Silver Vein',75,'Sjelden, i samme soner som tin','Silver Ore',null],
+  ['Silver Vein',75,'Rare, in the same zones as tin','Silver Ore',null],
   ['Iron Deposit',125,'Arathi, Desolace, Thousand Needles, STV, Badlands, Alterac','Iron Ore',null],
-  ['Gold Vein',155,'Sjelden, i samme soner som iron','Gold Ore',3577],
+  ['Gold Vein',155,'Rare, in the same zones as iron','Gold Ore',3577],
   ['Mithril Deposit',175,'Badlands, Hinterlands, Tanaris, Searing Gorge, Feralas','Mithril Ore',3860],
-  ['Truesilver Deposit',230,'Sjelden, i samme soner som mithril','Truesilver Ore',6037],
+  ['Truesilver Deposit',230,'Rare, in the same zones as mithril','Truesilver Ore',6037],
   ['Dark Iron Deposit',230,'Blackrock Depths, Molten Core','Dark Iron Ore',11371],
   ['Small Thorium Vein',245,"Un'Goro, Burning Steppes, Winterspring, Felwood, Silithus",'Thorium Ore',12359],
   ['Rich Thorium Vein',275,"Un'Goro, Burning Steppes, Winterspring, Eastern Plaguelands, Silithus",'Thorium Ore',12359]
 ];
 const MINE_ROUTE=[
-  [1,65,'Dun Morogh · Elwynn · Loch Modan','Copper – smelt Copper Bars for ekstra poeng'],
-  [65,125,'Redridge · Wetlands · Duskwood · Hillsbrad','Tin og Silver – smelt Bronze Bars'],
-  [125,175,'Arathi · Desolace · Thousand Needles · STV','Iron og Gold – smelt Iron, Gold og Steel'],
-  [175,245,'Badlands · Hinterlands · Tanaris · Searing Gorge','Mithril og Truesilver'],
+  [1,65,'Dun Morogh · Elwynn · Loch Modan','Copper – smelt Copper Bars for extra points'],
+  [65,125,'Redridge · Wetlands · Duskwood · Hillsbrad','Tin and Silver – smelt Bronze Bars'],
+  [125,175,'Arathi · Desolace · Thousand Needles · STV','Iron and Gold – smelt Iron, Gold and Steel'],
+  [175,245,'Badlands · Hinterlands · Tanaris · Searing Gorge','Mithril and Truesilver'],
   [245,300,"Un'Goro · Burning Steppes · Winterspring · EPL",'Small → Rich Thorium – smelt Thorium']
 ];
 const SMELT=[
@@ -490,33 +490,33 @@ const SMELT=[
   ['Steel Bar',3859,165,'1 Iron Bar + 1 Coal'],
   ['Mithril Bar',3860,175,'1 Mithril Ore'],
   ['Truesilver Bar',6037,230,'1 Truesilver Ore'],
-  ['Dark Iron Bar',11371,230,'8 Dark Iron Ore, ved Black Forge'],
+  ['Dark Iron Bar',11371,230,'8 Dark Iron Ore, at the Black Forge'],
   ['Thorium Bar',12359,250,'1 Thorium Ore']
 ];
 const GEMS=[774,818,1210,1206,1705,1529,3864,7909,7910,12363,12800];
 const SKIN_ROUTE=[
-  [1,100,'Mobs nivå 1–20','Startsoner · Westfall · Loch Modan · Darkshore',[2318]],
-  [100,150,'Mobs nivå 20–30','Wetlands · Redridge · Duskwood · Ashenvale',[2319,4232]],
-  [150,200,'Mobs nivå 30–40','Arathi · Stranglethorn · Desolace · Dustwallow',[4234,4235]],
-  [200,250,'Mobs nivå 40–50','Feralas · Tanaris · Hinterlands · Swamp of Sorrows',[4304,8167]],
-  [250,300,'Mobs nivå 50–60',"Un'Goro · Winterspring · Burning Steppes · Silithus",[8170,8171]]
+  [1,100,'Level 1–20 mobs','Starting zones · Westfall · Loch Modan · Darkshore',[2318]],
+  [100,150,'Level 20–30 mobs','Wetlands · Redridge · Duskwood · Ashenvale',[2319,4232]],
+  [150,200,'Level 30–40 mobs','Arathi · Stranglethorn · Desolace · Dustwallow',[4234,4235]],
+  [200,250,'Level 40–50 mobs','Feralas · Tanaris · Hinterlands · Swamp of Sorrows',[4304,8167]],
+  [250,300,'Level 50–60 mobs',"Un'Goro · Winterspring · Burning Steppes · Silithus",[8170,8171]]
 ];
 const SKIN_EXTRA=[
   [7286,'Black whelps (Wetlands, Redridge)'],[8165,'Dragonkin (Swamp of Sorrows, Dustwallow)'],[8167,'Turtles (Feralas, Tanaris, Azshara)'],
-  [15408,'Scorpids (Silithus, Burning Steppes, Blasted Lands)'],[15412,'Grønne dragonkin'],[15416,'Black dragonkin (Burning Steppes)'],
-  [15419,'Bears (Felwood, Winterspring)'],[15423,'Chimaeras (Winterspring, Azshara)'],[249428,'Forever-spesifikk'],[248824,'Forever-spesifikk']
+  [15408,'Scorpids (Silithus, Burning Steppes, Blasted Lands)'],[15412,'Green dragonkin'],[15416,'Black dragonkin (Burning Steppes)'],
+  [15419,'Bears (Felwood, Winterspring)'],[15423,'Chimaeras (Winterspring, Azshara)'],[249428,'Forever-specific'],[248824,'Forever-specific']
 ];
 const FISH_RANKS=[
-  ['Apprentice',1,75,'Fiskelærer i byene'],
-  ['Journeyman',75,150,'Fiskelærer i byene'],
-  ['Expert',150,225,'Boken «Expert Fishing – The Bass and You» fra Old Man Heming i Booty Bay'],
-  ['Artisan',225,300,'Quest fra Nat Pagle i Dustwallow Marsh']
+  ['Apprentice',1,75,'Fishing trainer in the cities'],
+  ['Journeyman',75,150,'Fishing trainer in the cities'],
+  ['Expert',150,225,'The book “Expert Fishing – The Bass and You” from Old Man Heming in Booty Bay'],
+  ['Artisan',225,300,'Quest from Nat Pagle in Dustwallow Marsh']
 ];
 const FISH_ROUTE=[
-  [1,75,'Startsoner og byene','Hvor som helst med vann nær byene'],
-  [75,150,'Westfall · Loch Modan · Darkshore · Redridge','Billig fisk som også gir Cooking-poeng'],
-  [150,225,'Stranglethorn · Arathi · Desolace · Hillsbrad','Booty Bay er et godt knutepunkt – der ligger også Expert-boken'],
-  [225,300,'Tanaris · Feralas · Azshara · Hinterlands · Winterspring','Se etter schools (fiskestimer) for verdifull fisk']
+  [1,75,'Starting zones and cities','Anywhere with water near the cities'],
+  [75,150,'Westfall · Loch Modan · Darkshore · Redridge','Cheap fish that also gives Cooking points'],
+  [150,225,'Stranglethorn · Arathi · Desolace · Hillsbrad','Booty Bay is a good hub – the Expert book is sold there too'],
+  [225,300,'Tanaris · Feralas · Azshara · Hinterlands · Winterspring','Look for fish schools (pools) for valuable fish']
 ];
 const LURES=[['Shiny Bauble','+25','Vendor'],['Nightcrawlers','+50','Vendor'],['Bright Baubles','+75','Vendor'],['Aquadynamic Fish Attractor','+100','Engineering']];
 const FISH_ITEMS=[13893,13759,4655,5504,5503,5500,7971];
@@ -538,7 +538,7 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 const iname=(id,fb)=>ITEMS[id]?ITEMS[id][0]:(fb||('#'+id));
 const iq=id=>ITEMS[id]?ITEMS[id][1]:1;
 const pct=v=>((Math.min(300,Math.max(1,v))-1)/299*100).toFixed(3)+'%';
-const nf=n=>Math.round(n).toLocaleString('nb-NO');
+const nf=n=>Math.round(n).toLocaleString('en-GB');
 function money(c,o){
   o=o||{};
   if(c==null||!isFinite(c))return '<span class="m none">–</span>';
@@ -547,7 +547,7 @@ function money(c,o){
   let g=Math.floor(a/10000),s=Math.floor(a/100)%100,k=a%100;
   if(o.short){if(g>=10){g=Math.round(a/10000);s=0;k=0}else if(g>=1){k=0}}
   const p=[];
-  if(g)p.push('<span class="ug">'+g.toLocaleString('nb-NO')+'<i>g</i></span>');
+  if(g)p.push('<span class="ug">'+g.toLocaleString('en-GB')+'<i>g</i></span>');
   if(s)p.push('<span class="us">'+s+'<i>s</i></span>');
   if(k||!p.length)p.push('<span class="uc">'+k+'<i>c</i></span>');
   const cls=o.sign?(c>0?' pos':c<0?' neg':''):'';
@@ -594,23 +594,23 @@ function curStep(R,s){return R.findIndex(st=>s>=st[0]&&s<st[1])}
 const rail=document.getElementById('rail'),main=document.getElementById('main');
 function railItem(p){const s=sk(p.id);return '<a class="rl'+(S.view===p.id?' on':'')+'" href="#'+p.id+'" style="--acc:'+p.hue+'"'+(S.view===p.id?' aria-current="page"':'')+'><span class="gl">'+ICON[p.id]+'</span><span>'+p.name+'</span><span class="sk">'+(s>1?s:'')+'</span></a>'}
 function renderRail(){
-  rail.innerHTML='<a class="rl'+(S.view==='oversikt'?' on':'')+'" href="#oversikt" style="--acc:var(--ink-2)"><span class="gl">'+ICON.home+'</span><span>Oversikt</span><span></span></a>'+
-  '<div class="rl-h">Produksjon</div>'+PROFS.filter(p=>p.kind==='craft').map(railItem).join('')+
-  '<div class="rl-h">Innsamling</div>'+PROFS.filter(p=>p.kind==='gather').map(railItem).join('');
+  rail.innerHTML='<a class="rl'+(S.view==='oversikt'?' on':'')+'" href="#oversikt" style="--acc:var(--ink-2)"><span class="gl">'+ICON.home+'</span><span>Overview</span><span></span></a>'+
+  '<div class="rl-h">Crafting</div>'+PROFS.filter(p=>p.kind==='craft').map(railItem).join('')+
+  '<div class="rl-h">Gathering</div>'+PROFS.filter(p=>p.kind==='gather').map(railItem).join('');
   const on=rail.querySelector('.rl.on');if(on&&window.innerWidth<=860){try{on.scrollIntoView({inline:'center',block:'nearest'})}catch(e){}}
 }
 function applyTheme(){
   const r=document.documentElement;
   if(S.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',S.theme);
   const b=document.getElementById('theme');b.innerHTML=ICON[S.theme==='auto'?'auto':S.theme==='light'?'sun':'moon'];
-  b.title='Tema: '+({auto:'automatisk',light:'lyst',dark:'mørkt'}[S.theme]);
+  b.title='Theme: '+({auto:'automatic',light:'light',dark:'dark'}[S.theme]);
 }
 function controls(showSkill,id){
   let h='';
-  if(showSkill){const s=sk(id);h+='<label class="fld"><span>Din skill</span><div class="stepper"><button type="button" data-act="dec" aria-label="Senk skill">−</button><input id="skill" type="number" min="1" max="300" step="1" inputmode="numeric" value="'+s+'" aria-label="Din skill"><button type="button" data-act="inc" aria-label="Øk skill">+</button></div></label>'}
+  if(showSkill){const s=sk(id);h+='<label class="fld"><span>Your skill</span><div class="stepper"><button type="button" data-act="dec" aria-label="Decrease skill">−</button><input id="skill" type="number" min="1" max="300" step="1" inputmode="numeric" value="'+s+'" aria-label="Your skill"><button type="button" data-act="inc" aria-label="Increase skill">+</button></div></label>'}
   if(!id||PBY[id].kind==='craft'){
-    h+='<div class="fld"><span>Rute</span><div class="seg" role="group" aria-label="Rutevariant"><button type="button" data-variant="best" aria-pressed="'+(S.variant==='best')+'">Beste rute</button><button type="button" data-variant="trainer" aria-pressed="'+(S.variant==='trainer')+'">Kun trainer</button></div></div>';
-    h+='<label class="fld"><span>AH-salg regnes over</span><select id="horizon">'+[1,3,7].map(v=>'<option value="'+v+'"'+(S.horizon===v?' selected':'')+'>'+v+(v===1?' dag':' dager')+'</option>').join('')+'</select></label>';
+    h+='<div class="fld"><span>Route</span><div class="seg" role="group" aria-label="Route variant"><button type="button" data-variant="best" aria-pressed="'+(S.variant==='best')+'">Best route</button><button type="button" data-variant="trainer" aria-pressed="'+(S.variant==='trainer')+'">Trainer only</button></div></div>';
+    h+='<label class="fld"><span>Count AH sales over</span><select id="horizon">'+[1,3,7].map(v=>'<option value="'+v+'"'+(S.horizon===v?' selected':'')+'>'+v+(v===1?' day':' days')+'</option>').join('')+'</select></label>';
   }
   return '<div class="ctl">'+h+'</div>';
 }
@@ -621,20 +621,20 @@ function srcBadge(src,extra){const s=SRC[src]||[src,src];return '<span class="ba
 
 /* ---------- overview ---------- */
 function viewOverview(){
-  let h='<section class="ov-hero"><div><h1>Yrkesruter <em>1–300</em></h1><p>Billigste vei opp i alle yrker i WoW: Forever, regnet ut fra '+(isLive()?'live AH-priser på '+esc(D.market)+' – rutene regnes på nytt hvert '+(D.refreshMinutes||30)+'. minutt':'AH-prisene på '+esc(D.market)+' '+esc(D.asOf))+'. Velg et yrke, skriv inn skillen din, og få resten av ruten, handlelisten og det som gir gull underveis.</p></div>'+controls(false)+'</section>';
-  h+='<h2 class="ov-h">Produksjon <small>netto = salgsverdi − mats − patterns for resten av ruten</small></h2><section class="ov-grid">';
+  let h='<section class="ov-hero"><div><h1>Profession routes <em>1–300</em></h1><p>The cheapest way up in every profession in WoW: Forever, calculated from '+(isLive()?'live AH prices on '+esc(D.market)+' – routes are recalculated every '+(D.refreshMinutes||30)+' minutes':'AH prices on '+esc(D.market)+', '+esc(D.asOf))+'. Pick a profession, enter your skill, and get the rest of the route, a shopping list and what makes gold along the way.</p></div>'+controls(false)+'</section>';
+  h+='<h2 class="ov-h">Crafting <small>net = sale value − mats − patterns for the rest of the route</small></h2><section class="ov-grid">';
   PROFS.filter(p=>p.kind==='craft').forEach(p=>{
     const R=D.profs[p.id][S.variant],s=sk(p.id),C=routeCalc(R,s,S.horizon);
     const strip=R.map(st=>'<i class="'+(s>=st[1]?'done':'')+'" style="flex:'+(st[1]-st[0])+'"></i>').join('');
     h+='<a class="oc" href="#'+p.id+'" style="--acc:'+p.hue+'"><div class="oc-top"><span class="gl">'+ICON[p.id]+'</span><span class="oc-nm">'+p.name+'</span>'+(s>1?'<span class="oc-sk">'+s+'/300</span>':'')+'</div>'+
-      '<div class="oc-net">'+(s>=300?'<span class="m pos">Ferdig</span>':money(C.T.net,{sign:true,short:true}))+'<small>netto '+(s>1?'fra '+s+' til 300':'1–300')+'</small></div>'+
+      '<div class="oc-net">'+(s>=300?'<span class="m pos">Done</span>':money(C.T.net,{sign:true,short:true}))+'<small>net '+(s>1?'from '+s+' to 300':'1–300')+'</small></div>'+
       '<div class="oc-strip">'+strip+'</div>'+
-      '<dl class="oc-dl"><div><dt>Mats</dt><dd>'+money(C.T.mats,{short:true})+'</dd></div><div><dt>Crafts</dt><dd>'+nf(C.T.crafts)+'</dd></div><div><dt>Trinn</dt><dd>'+R.length+'</dd></div></dl></a>';
+      '<dl class="oc-dl"><div><dt>Mats</dt><dd>'+money(C.T.mats,{short:true})+'</dd></div><div><dt>Crafts</dt><dd>'+nf(C.T.crafts)+'</dd></div><div><dt>Steps</dt><dd>'+R.length+'</dd></div></dl></a>';
   });
-  h+='</section><h2 class="ov-h">Innsamling <small>soner, skill-terskler og hva det er verdt</small></h2><section class="ov-grid">';
-  const gs={herbalism:'28 urter med skill-krav, soner og AH-pris',mining:'Årer, smelting og edelstener',skinning:'Hvilke mobs du kan skinne og hva lær er verdt',fishing:'Ranks, soner, lures og verdifull fisk'};
+  h+='</section><h2 class="ov-h">Gathering <small>zones, skill thresholds and what it is worth</small></h2><section class="ov-grid">';
+  const gs={herbalism:'28 herbs with skill requirements, zones and AH prices',mining:'Veins, smelting and gems',skinning:'Which mobs you can skin and what leather is worth',fishing:'Ranks, zones, lures and valuable fish'};
   PROFS.filter(p=>p.kind==='gather').forEach(p=>{const s=sk(p.id);
-    h+='<a class="oc" href="#'+p.id+'" style="--acc:'+p.hue+'"><div class="oc-top"><span class="gl">'+ICON[p.id]+'</span><span class="oc-nm">'+p.name+'</span>'+(s>1?'<span class="oc-sk">'+s+'/300</span>':'')+'</div><p>'+gs[p.id]+'</p><span class="go">Se ruten →</span></a>';
+    h+='<a class="oc" href="#'+p.id+'" style="--acc:'+p.hue+'"><div class="oc-top"><span class="gl">'+ICON[p.id]+'</span><span class="oc-nm">'+p.name+'</span>'+(s>1?'<span class="oc-sk">'+s+'/300</span>':'')+'</div><p>'+gs[p.id]+'</p><span class="go">See the route →</span></a>';
   });
   h+='</section>'+methodBlock();
   return h;
@@ -649,89 +649,89 @@ function viewCraft(P){
   // stats
   const left=300-s;
   h+='<dl class="stats">'+
-    '<div class="stat"><dt>Gjenstår</dt><dd>'+left+' <span class="muted" style="font-size:13px">poeng</span></dd><small>≈ '+nf(T.crafts)+' crafts</small></div>'+
-    '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>innkjøp for resten av ruten</small></div>'+
-    '<div class="stat"><dt>Salgsverdi</dt><dd>'+money(T.val,{short:true})+'</dd><small>etter 5 % AH-avgift</small></div>'+
-    '<div class="stat"><dt>Patterns</dt><dd>'+money(T.pat,{short:true})+'</dd><small>oppskrifter fra AH</small></div>'+
-    '<div class="stat hl"><dt>Netto</dt><dd>'+money(T.net,{sign:true,short:true})+'</dd><small>'+(T.net>=0?'du tjener på å skille opp':'kostnad for å nå 300')+'</small></div></dl>';
+    '<div class="stat"><dt>Remaining</dt><dd>'+left+' <span class="muted" style="font-size:13px">points</span></dd><small>≈ '+nf(T.crafts)+' crafts</small></div>'+
+    '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>to buy for the rest of the route</small></div>'+
+    '<div class="stat"><dt>Sale value</dt><dd>'+money(T.val,{short:true})+'</dd><small>after the 5% AH cut</small></div>'+
+    '<div class="stat"><dt>Patterns</dt><dd>'+money(T.pat,{short:true})+'</dd><small>recipes from the AH</small></div>'+
+    '<div class="stat hl"><dt>Net</dt><dd>'+money(T.net,{sign:true,short:true})+'</dd><small>'+(T.net>=0?'you make money levelling':'cost to reach 300')+'</small></div></dl>';
   // track
   let segs='';R.forEach((st,i)=>{const cls=s>=st[1]?'done':(s>st[0]?'cur':'');const p=cls==='cur'?((s-st[0])/(st[1]-st[0])*100).toFixed(1)+'%':'0%';
-    segs+='<button type="button" class="sb '+cls+'" style="flex:'+(st[1]-st[0])+';--p:'+p+'" data-jump="'+i+'" title="'+st[0]+'–'+st[1]+': '+esc(st[2])+'" aria-label="Trinn '+st[0]+' til '+st[1]+'"></button>'});
+    segs+='<button type="button" class="sb '+cls+'" style="flex:'+(st[1]-st[0])+';--p:'+p+'" data-jump="'+i+'" title="'+st[0]+'–'+st[1]+': '+esc(st[2])+'" aria-label="Step '+st[0]+' to '+st[1]+'"></button>'});
   const ranks=[[1,'1'],[75,'75'],[150,'150'],[225,'225'],[300,'300']].map(r=>'<span class="tk" style="left:'+pct(r[0])+'">'+r[1]+'</span>').join('')+
     [['Apprentice',38],['Journeyman',112],['Expert',188],['Artisan',262]].map(r=>'<span class="rn" style="left:'+pct(r[1])+'">'+r[0]+'</span>').join('');
-  h+='<section class="track"><div class="track-top"><span>Skill <b>'+s+'</b> / 300</span><span>'+R.length+' trinn · '+(S.variant==='best'?'beste rute':'kun trainer')+'</span></div><div class="bar-wrap"><div class="bar">'+segs+'</div><div class="mk" style="left:'+pct(s)+'" data-v="'+s+'"></div></div><div class="ranks">'+ranks+'</div></section>';
+  h+='<section class="track"><div class="track-top"><span>Skill <b>'+s+'</b> / 300</span><span>'+R.length+' steps · '+(S.variant==='best'?'best route':'trainer only')+'</span></div><div class="bar-wrap"><div class="bar">'+segs+'</div><div class="mk" style="left:'+pct(s)+'" data-v="'+s+'"></div></div><div class="ranks">'+ranks+'</div></section>';
   // now card
   if(ci<0){
-    h+='<section class="now"><div class="now-k">Ferdig</div><h2>300 / 300 – du er i mål</h2><div class="now-meta">Se gulltipsene under for hva som lønner seg å lage nå.</div></section>';
+    h+='<section class="now"><div class="now-k">Done</div><h2>300 / 300 – you made it</h2><div class="now-meta">See the gold tips below for what is worth crafting now.</div></section>';
   }else{
     const st=R[ci],c=C.steps[ci],nx=R[ci+1];
     const chips=st[17].map(([id,n])=>'<span class="chipm"><b>'+nf(Math.ceil(n*c.rc-1e-6))+'</b><span class="q'+iq(id)+'">'+esc(iname(id))+'</span></span>').join('');
-    h+='<section class="now"><div class="now-k">Lag nå · '+st[0]+'–'+st[1]+'</div><h2 class="'+qcls(st[3])+'">'+esc(st[2])+(st[4]>1?' <span class="muted" style="font:500 15px var(--f-num)">×'+st[4]+'</span>':'')+'</h2>'+
-      '<div class="now-meta">'+learnText(st,s)+' · koster '+money(st[12])+' per craft · '+saleText(st)+'</div>'+
+    h+='<section class="now"><div class="now-k">Craft now · '+st[0]+'–'+st[1]+'</div><h2 class="'+qcls(st[3])+'">'+esc(st[2])+(st[4]>1?' <span class="muted" style="font:500 15px var(--f-num)">×'+st[4]+'</span>':'')+'</h2>'+
+      '<div class="now-meta">'+learnText(st,s)+' · costs '+money(st[12])+' per craft · '+saleText(st)+'</div>'+
       '<div class="chips">'+chips+'</div>'+
-      (nx?'<div class="now-next">Deretter: <b>'+esc(nx[2])+'</b> fra '+nx[0]+'</div>':'<div class="now-next">Dette er siste trinn før 300.</div>')+
-      '<div class="now-big"><b>'+nf(Math.ceil(c.rc))+'</b><span>crafts til '+st[1]+'</span></div></section>';
+      (nx?'<div class="now-next">Next: <b>'+esc(nx[2])+'</b> from '+nx[0]+'</div>':'<div class="now-next">This is the last step before 300.</div>')+
+      '<div class="now-big"><b>'+nf(Math.ceil(c.rc))+'</b><span>crafts to '+st[1]+'</span></div></section>';
   }
   // steps
-  h+='<section class="steps"><div class="ch"><h3>Ruten trinn for trinn</h3><span class="sub">'+(S.variant==='best'?'Bruker trainer, vendor og billige patterns':'Bare trainer-oppskrifter der det finnes et alternativ')+'</span></div>'+
-     '<div class="st-head sg"><span>Skill</span><span>Oppskrift</span><span class="r c-n">Crafts</span><span class="r c-c">Kost/stk</span><span class="r c-v">Salg/stk</span><span class="r">Netto</span><span></span></div>';
+  h+='<section class="steps"><div class="ch"><h3>The route, step by step</h3><span class="sub">'+(S.variant==='best'?'Uses trainer, vendor and cheap patterns':'Trainer recipes wherever one gives points')+'</span></div>'+
+     '<div class="st-head sg"><span>Skill</span><span>Recipe</span><span class="r c-n">Crafts</span><span class="r c-c">Cost/ea</span><span class="r c-v">Sale/ea</span><span class="r">Net</span><span></span></div>';
   R.forEach((st,i)=>{h+=stepRow(st,C.steps[i],i,s,open.has(i),ci)});
   h+='</section>';
   // shopping + recipes
   const shop=shopping(R,C);
   const rec=[];const seen=new Set();R.forEach((st,i)=>{if(seen.has(st[2]))return;seen.add(st[2]);rec.push({st,have:R.some(x=>x[2]===st[2]&&x[0]<s),done:R.filter(x=>x[2]===st[2]).every(x=>s>=x[1])})});
-  h+='<section class="grid2"><div class="card"><div class="ch"><h3>Handleliste '+s+' → 300</h3>'+(shop.length?'<button type="button" class="btn" data-act="copy">'+ICON.copy+'Kopier</button>':'')+'</div>';
+  h+='<section class="grid2"><div class="card"><div class="ch"><h3>Shopping list '+s+' → 300</h3>'+(shop.length?'<button type="button" class="btn" data-act="copy">'+ICON.copy+'Copy</button>':'')+'</div>';
   if(shop.length){
-    h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Mats</th><th class="r">Antall</th><th class="r hide-s">Pris/stk</th><th class="r">Sum</th></tr></thead><tbody>'+
+    h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Mats</th><th class="r">Qty</th><th class="r hide-s">Price/ea</th><th class="r">Total</th></tr></thead><tbody>'+
       shop.map(x=>'<tr><td><span class="q'+iq(x.id)+'">'+esc(iname(x.id))+'</span>'+howTag(x.id)+'</td><td class="r num">'+nf(x.q)+'</td><td class="r hide-s">'+priceCell(x.id)+'</td><td class="r">'+money(x.total,{short:true})+'</td></tr>').join('')+
-      '</tbody><tfoot><tr><td>Totalt</td><td></td><td class="hide-s"></td><td class="r">'+money(shop.reduce((a,x)=>a+x.total,0),{short:true})+'</td></tr></tfoot></table></div>'+
-      '<p class="note">Forventet antall – på gule og grønne trinn kan du trenge litt mer. «lag selv» betyr at det er billigere å lage det (f.eks. bolts av cloth) enn å kjøpe ferdig.</p>';
-  }else h+='<div class="empty">Ingenting å kjøpe – ruten er fullført.</div>';
-  h+='</div><div class="card"><div class="ch"><h3>Oppskrifter i ruten</h3><span class="sub">'+rec.length+' stk</span></div><ul class="rec">'+
-    rec.map(r=>{const st=r.st;return '<li class="'+(r.done?'have':'')+'"><span class="nm '+qcls(st[3])+'">'+esc(st[2])+'</span><span>'+srcBadge(st[9])+'</span><span class="meta">Lærer på '+st[5]+(st[10]?' · pattern ca. '+moneyPlain(st[10])+' på AH':'')+(r.done?' · ferdig brukt':r.have?' · i bruk nå':'')+'</span></li>'}).join('')+
+      '</tbody><tfoot><tr><td>Total</td><td></td><td class="hide-s"></td><td class="r">'+money(shop.reduce((a,x)=>a+x.total,0),{short:true})+'</td></tr></tfoot></table></div>'+
+      '<p class="note">Expected amounts – on yellow and green steps you may need a few more. “craft it” means it is cheaper to make it yourself (e.g. bolts of cloth) than to buy it.</p>';
+  }else h+='<div class="empty">Nothing to buy – the route is complete.</div>';
+  h+='</div><div class="card"><div class="ch"><h3>Recipes in the route</h3><span class="sub">'+rec.length+' total</span></div><ul class="rec">'+
+    rec.map(r=>{const st=r.st;return '<li class="'+(r.done?'have':'')+'"><span class="nm '+qcls(st[3])+'">'+esc(st[2])+'</span><span>'+srcBadge(st[9])+'</span><span class="meta">Learn at '+st[5]+(st[10]?' · pattern approx. '+moneyPlain(st[10])+' on the AH':'')+(r.done?' · done':r.have?' · in use now':'')+'</span></li>'}).join('')+
     '</ul></div></section>';
   // gold tips
   const G=D.profs[P.id].gold||[];
-  h+='<section class="card gold" style="margin-bottom:22px"><div class="ch"><h3>Gulltips</h3><span class="sub">Sortert etter fortjeneste × hvor mye som selges per dag</span></div>';
+  h+='<section class="card gold" style="margin-bottom:22px"><div class="ch"><h3>Gold tips</h3><span class="sub">Sorted by profit × how many sell per day</span></div>';
   if(G.length){
-    h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Lag</th><th class="r">Skill</th><th>Kilde</th><th class="r hide-s">Mats</th><th class="r hide-s">Salg</th><th class="r">Fortjeneste</th><th class="r hide-s">Solgt/dag</th></tr></thead><tbody>'+
-      G.map(g=>{const prof=g[6]-g[5];const flags=(g[8]==='cd'?'<span class="badge cd" title="Delt cooldown">Cooldown</span> ':'')+(g[8]==='spec'?'<span class="badge warn" title="Krever Gnomish/Goblin">Spesialisering</span> ':'');
+    h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Craft</th><th class="r">Skill</th><th>Source</th><th class="r hide-s">Mats</th><th class="r hide-s">Sale</th><th class="r">Profit</th><th class="r hide-s">Sold/day</th></tr></thead><tbody>'+
+      G.map(g=>{const prof=g[6]-g[5];const flags=(g[8]==='cd'?'<span class="badge cd" title="Shared cooldown">Cooldown</span> ':'')+(g[8]==='spec'?'<span class="badge warn" title="Requires Gnomish/Goblin">Specialization</span> ':'');
         const can=s>=g[3];
         return '<tr><td><span class="nm '+qcls(g[1])+'">'+esc(g[0])+'</span>'+(g[2]>1?' <span class="muted num" style="font-size:12px">×'+g[2]+'</span>':'')+' '+flags+'<span class="gold-mats">'+g[11].map(([id,n])=>n+'× '+esc(iname(id))).join(' · ')+'</span></td>'+
-          '<td class="r num">'+(can?'<span class="badge ok" title="Du kan lage denne">'+g[3]+'</span>':g[3])+'</td>'+
+          '<td class="r num">'+(can?'<span class="badge ok" title="You can craft this">'+g[3]+'</span>':g[3])+'</td>'+
           '<td>'+srcBadge(g[4])+(g[9]?' <span class="muted" style="font-size:12px">'+esc(g[9])+'</span>':'')+(g[10]?' <span class="muted" style="font-size:12px">pattern '+moneyPlain(g[10])+'</span>':'')+'</td>'+
-          '<td class="r hide-s">'+money(g[5],{short:true})+'</td><td class="r hide-s">'+money(g[6],{short:true})+'</td><td class="r">'+money(prof,{sign:true,short:true})+'</td><td class="r num hide-s">'+(g[7]!=null?(Math.round(g[7]*10)/10).toLocaleString('nb-NO'):'–')+'</td></tr>'}).join('')+
-      '</tbody></table></div><p class="note">Fortjeneste per craft = AH-pris etter avgift − mats. «Solgt/dag» er hvor mange som omsettes på AH per dag – lav omsetning betyr at du ikke får solgt mange.</p>';
-  }else h+='<div class="empty">Ingen tydelige gulltips for dette yrket.</div>';
+          '<td class="r hide-s">'+money(g[5],{short:true})+'</td><td class="r hide-s">'+money(g[6],{short:true})+'</td><td class="r">'+money(prof,{sign:true,short:true})+'</td><td class="r num hide-s">'+(g[7]!=null?(Math.round(g[7]*10)/10).toLocaleString('en-GB'):'–')+'</td></tr>'}).join('')+
+      '</tbody></table></div><p class="note">Profit per craft = AH price after the cut − mats. “Sold/day” is how many trade on the AH per day – low volume means you will not sell many.</p>';
+  }else h+='<div class="empty">No clear gold tips for this profession.</div>';
   h+='</section>'+methodBlock();
   return h;
 }
-function moneyPlain(c){const a=Math.round(c);if(a>=10000)return (Math.round(a/1000)/10).toLocaleString('nb-NO')+'g';if(a>=100)return Math.round(a/100)+'s';return a+'c'}
+function moneyPlain(c){const a=Math.round(c);if(a>=10000)return (Math.round(a/1000)/10).toLocaleString('en-GB')+'g';if(a>=100)return Math.round(a/100)+'s';return a+'c'}
 function learnText(st,s){
   const src=st[9];let t;
-  if(src==='T')t='Lær hos trainer';else if(src==='V')t='Recipe fra vendor';else if(src==='Q')t='Fra quest';else if(src==='R')t='Krever rep';
-  else t='Pattern på AH'+(st[10]?' (ca. '+moneyPlain(st[10])+')':'');
-  return t+' fra skill '+st[5];
+  if(src==='T')t='Learn from a trainer';else if(src==='V')t='Recipe from a vendor';else if(src==='Q')t='From a quest';else if(src==='R')t='Requires reputation';
+  else t='Pattern on the AH'+(st[10]?' (approx. '+moneyPlain(st[10])+')':'');
+  return t+' at skill '+st[5];
 }
 function saleText(st){
-  if(st[14]==='AH')return 'selges på AH (~'+(Math.round(st[15]*10)/10).toLocaleString('nb-NO')+'/dag)';
-  if(st[14]==='vendor')return 'selg til vendor';
-  return 'kan ikke selges';
+  if(st[14]==='AH')return 'sells on the AH (~'+(Math.round(st[15]*10)/10).toLocaleString('en-GB')+'/day)';
+  if(st[14]==='vendor')return 'sell to a vendor';
+  return 'cannot be sold';
 }
 function diffBar(st,f,t){
   const lo=st[5],y=st[6],g=st[7],gr=st[8],span=Math.max(1,gr-lo);
   const P=v=>(Math.max(0,Math.min(1,(v-lo)/span))*100).toFixed(2)+'%';
   const W=(a,b)=>(Math.max(0,Math.min(1,(b-lo)/span)-Math.max(0,Math.min(1,(a-lo)/span)))*100).toFixed(2)+'%';
-  return '<span class="diff" title="Oransje '+lo+'–'+y+' · gul '+y+'–'+g+' · grønn '+g+'–'+gr+' · grå fra '+gr+'"><i class="o" style="left:0;width:'+W(lo,y)+'"></i><i class="y" style="left:'+P(y)+';width:'+W(y,g)+'"></i><i class="g" style="left:'+P(g)+';width:'+W(g,gr)+'"></i><b style="left:'+P(f)+';width:'+W(f,t)+'"></b></span>';
+  return '<span class="diff" title="Orange '+lo+'–'+y+' · yellow '+y+'–'+g+' · green '+g+'–'+gr+' · grey from '+gr+'"><i class="o" style="left:0;width:'+W(lo,y)+'"></i><i class="y" style="left:'+P(y)+';width:'+W(y,g)+'"></i><i class="g" style="left:'+P(g)+';width:'+W(g,gr)+'"></i><b style="left:'+P(f)+';width:'+W(f,t)+'"></b></span>';
 }
 function stepRow(st,c,i,s,isOpen,ci){
   const [f,t,name,rid,yld,learn,y,g,gr,src,pp,crafts,mats,sale,how,sold,vend,reag]=st;
   const done=c.done,cur=i===ci;
   const n=done?crafts:c.rc;
   const warn=[];
-  if(crafts*mats>3000000)warn.push('<span class="badge warn" title="Trinnet krever mye gull i mats">Mye kapital</span>');
-  if(how==='AH'&&sold<5&&crafts>sold*2)warn.push('<span class="badge warn" title="Lite omsetning på AH">Tregt salg</span>');
-  if(how==='none')warn.push('<span class="badge" title="Enchants kan ikke selges på AH">Selges ikke</span>');
+  if(crafts*mats>3000000)warn.push('<span class="badge warn" title="This step needs a lot of gold in mats">High capital</span>');
+  if(how==='AH'&&sold<5&&crafts>sold*2)warn.push('<span class="badge warn" title="Low trading volume on the AH">Slow sales</span>');
+  if(how==='none')warn.push('<span class="badge" title="Enchants cannot be sold on the AH">Not sellable</span>');
   const netShow=done?null:c.net;
   const stepNetFull=(()=>{let v=0;if(how==='AH'){const n1=Math.min(crafts,(sold||0)*S.horizon);v=n1*sale+(crafts-n1)*(vend||0)}else if(how==='vendor')v=crafts*sale;return v-crafts*mats})();
   const per=reag.map(([id,q])=>'<li><span class="qt">'+q+'×</span><span class="q'+iq(id)+'">'+esc(iname(id))+'</span><span class="pr">'+priceCell(id)+howTag(id)+'</span></li>').join('');
@@ -740,33 +740,33 @@ function stepRow(st,c,i,s,isOpen,ci){
     '<button type="button" class="st-main sg" data-toggle="'+i+'" aria-expanded="'+isOpen+'">'+
       '<span class="st-rng">'+f+'<em>–</em>'+t+'</span>'+
       '<span class="st-name"><span class="st-l1"><span class="nm '+qcls(rid)+'">'+esc(name)+'</span>'+(yld>1?'<span class="y">×'+yld+'</span>':'')+srcBadge(src)+warn.join('')+'</span>'+diffBar(st,f,t)+
-        '<span class="st-mob">'+(done?'Ferdig':'≈ '+nf(Math.ceil(n))+' crafts · '+moneyText(mats)+'/stk')+'</span></span>'+
+        '<span class="st-mob">'+(done?'Done':'≈ '+nf(Math.ceil(n))+' crafts · '+moneyText(mats)+'/ea')+'</span></span>'+
       '<span class="r num c-n">'+(done?'✓':nf(Math.ceil(n)))+'</span>'+
       '<span class="r c-c">'+money(mats,{short:true})+'</span>'+
       '<span class="r c-v">'+(how==='none'?'<span class="m none">–</span>':money(sale,{short:true}))+'</span>'+
-      '<span class="r">'+(done?'<span class="m none">ferdig</span>':money(netShow,{sign:true,short:true}))+'</span>'+ICON.chev+
+      '<span class="r">'+(done?'<span class="m none">done</span>':money(netShow,{sign:true,short:true}))+'</span>'+ICON.chev+
     '</button>'+
     '<div class="st-det">'+
-      '<div><h4>Mats per craft</h4><ul class="ml">'+per+'<li class="tot"><span class="qt"></span><span>Sum per craft</span><span class="pr">'+money(mats)+'</span></li></ul></div>'+
-      '<div><h4>'+(done?'Hele trinnet ('+nf(Math.ceil(crafts))+' crafts)':cur?'Resten av trinnet ('+nf(Math.ceil(n))+' crafts)':'Hele trinnet ('+nf(Math.ceil(n))+' crafts)')+'</h4><ul class="ml">'+tot+'</ul></div>'+
-      '<div><h4>Detaljer</h4><dl class="kv">'+
-        '<dt>Lærer</dt><dd>'+esc((SRC[src]||[src])[0])+' · skill '+learn+(pp?' · pattern '+moneyPlain(pp):'')+'</dd>'+
-        '<dt>Farger</dt><dd><span class="lg"><span class="o">'+learn+'</span><span class="y">'+y+'</span><span class="g">'+g+'</span><span class="x">'+gr+'</span></span></dd>'+
-        '<dt>Salg</dt><dd>'+saleText(st)+'</dd>'+
+      '<div><h4>Mats per craft</h4><ul class="ml">'+per+'<li class="tot"><span class="qt"></span><span>Total per craft</span><span class="pr">'+money(mats)+'</span></li></ul></div>'+
+      '<div><h4>'+(done?'Whole step ('+nf(Math.ceil(crafts))+' crafts)':cur?'Rest of the step ('+nf(Math.ceil(n))+' crafts)':'Whole step ('+nf(Math.ceil(n))+' crafts)')+'</h4><ul class="ml">'+tot+'</ul></div>'+
+      '<div><h4>Details</h4><dl class="kv">'+
+        '<dt>Learn</dt><dd>'+esc((SRC[src]||[src])[0])+' · skill '+learn+(pp?' · pattern '+moneyPlain(pp):'')+'</dd>'+
+        '<dt>Colours</dt><dd><span class="lg"><span class="o">'+learn+'</span><span class="y">'+y+'</span><span class="g">'+g+'</span><span class="x">'+gr+'</span></span></dd>'+
+        '<dt>Sale</dt><dd>'+saleText(st)+'</dd>'+
         (how==='AH'?'<dt>Vendor</dt><dd>'+money(vend)+' per craft</dd>':'')+
-        '<dt>Trinn totalt</dt><dd>'+money(stepNetFull,{sign:true,short:true})+' over '+nf(Math.ceil(crafts))+' crafts</dd>'+
+        '<dt>Step total</dt><dd>'+money(stepNetFull,{sign:true,short:true})+' over '+nf(Math.ceil(crafts))+' crafts</dd>'+
       '</dl></div>'+
     '</div></div>';
 }
 function methodBlock(){
-  return '<details class="method"><summary>Slik er rutene regnet ut</summary><ul>'+
-    '<li>Prisene hentes automatisk fra AHledger (median-pris og omsetning per dag) hvert '+((D&&D.refreshMinutes)||30)+'. minutt, og alle rutene regnes på nytt hver gang. Siden henter nye tall av seg selv.</li>'+
-    '<li>For hvert skillnivå velges oppskriften med lavest kostnad per skillpoeng: mats minus forventet salgsverdi, pluss pattern-pris første gang, med et lite påslag for tid og bundet kapital, og en liten straff for å bytte oppskrift ofte.</li>'+
-    '<li>Sjanse for poeng: oransje 100 %, gul og grønn (grå − skill) / (grå − gul), grå 0 %. «Crafts» er forventet antall.</li>'+
-    '<li>Salgsverdi er AH-pris etter 5 % avgift, men bare for så mange som markedet omsetter på valgt antall dager. Resten regnes til vendorpris.</li>'+
-    '<li>Ikke med i rutene: oppskrifter med cooldown (transmutes, Mooncloth, salt), Gnomish/Goblin-spesialisering, rep-oppskrifter og oppskrifter med ukjent kilde. Drop- og quest-patterns er bare med når de koster maks 6g på AH.</li>'+
-    '<li>Mats-pris er det billigste av AH, vendor og å lage selv. «Kun trainer» bruker trainer-oppskrifter så langt det går, og vendor/drop bare der trainer ikke har noe som gir poeng.</li>'+
-    '<li>Innsamlingsyrkene bruker klassiske skill-terskler (oransje, gul, grønn, grå) og vanlige Alliance-soner. Sjekk i spillet om Forever har endret noe.</li>'+
+  return '<details class="method"><summary>How the routes are calculated</summary><ul>'+
+    '<li>Prices are fetched automatically from AHledger (median price and daily sales) every '+((D&&D.refreshMinutes)||30)+' minutes, and every route is recalculated each time. The page picks up new numbers on its own.</li>'+
+    '<li>At every skill level the recipe with the lowest cost per skill point is picked: mats minus expected sale value, plus the pattern price the first time, with a small surcharge for time and tied-up gold, and a small penalty for switching recipes often.</li>'+
+    '<li>Skill-up chance: orange 100%, yellow and green (grey − skill) / (grey − yellow), grey 0%. “Crafts” is the expected number.</li>'+
+    '<li>Sale value is the AH price after the 5% cut, but only for as many as the market trades over the chosen number of days. The rest is counted at vendor price.</li>'+
+    '<li>Left out of the routes: recipes with a cooldown (transmutes, Mooncloth, salt), Gnomish/Goblin specialization, reputation recipes and recipes with an unknown source. Drop and quest patterns are only used when they cost 6g or less on the AH.</li>'+
+    '<li>Mats price is the cheapest of AH, vendor and crafting it yourself. “Trainer only” uses trainer recipes as far as possible, and vendor/drop recipes only where the trainer has nothing that gives points.</li>'+
+    '<li>The gathering professions use classic skill thresholds (orange, yellow, green, grey) and common Alliance zones. Check in game whether Forever has changed anything.</li>'+
   '</ul></details>';
 }
 
@@ -779,9 +779,9 @@ function nodeBar(req,y,g,gr,s){
 }
 function phases(list,s,render){return '<ol class="phases">'+list.map(p=>'<li class="'+(s>=p[1]?'done':s>=p[0]?'cur':'')+'"><span class="pr">'+p[0]+'–'+p[1]+'</span>'+render(p)+'</li>').join('')+'</ol>'}
 const axis='<span class="axis">'+[1,75,150,225,300].map(v=>'<span style="left:'+pct(v)+'">'+v+'</span>').join('')+'</span>';
-const stLabel={sl:'For lav skill',so:'Oransje – sikre poeng',sy:'Gul – gode poeng',sg:'Grønn – få poeng',sx:'Grå – ingen poeng'};
+const stLabel={sl:'Skill too low',so:'Orange – guaranteed points',sy:'Yellow – good points',sg:'Green – few points',sx:'Grey – no points'};
 function nodeTable(rows,s,label,plabel){
-  return '<div class="nodes"><div class="nd-head ng"><span>'+label+'</span><span class="r">Krav</span><span class="h-bar">'+axis+'</span><span class="r">'+(plabel||'AH-pris')+'</span><span class="z">Hvor</span></div>'+
+  return '<div class="nodes"><div class="nd-head ng"><span>'+label+'</span><span class="r">Req.</span><span class="h-bar">'+axis+'</span><span class="r">'+(plabel||'AH price')+'</span><span class="z">Where</span></div>'+
     rows.map(r=>{const [req,y,g,gr]=thr(r.req);const st=nodeState(s,req,y,g,gr);
       return '<div class="nd ng '+st+'" title="'+stLabel[st]+'"><span class="nm"><span class="dot"></span><span class="q'+r.q+'">'+esc(r.name)+'</span></span><span class="r num">'+req+'</span>'+nodeBar(req,y,g,gr,s)+'<span class="r">'+(r.price!=null?money(r.price,{short:true}):'<span class="m none">–</span>')+'</span><span class="z">'+esc(r.zones)+'</span></div>'}).join('')+'</div>';
 }
@@ -794,44 +794,44 @@ function viewGather(P){
   if(P.id==='herbalism'){
     const rows=HERBS.map(([n,id,req,z])=>({name:iname(id,n),q:iq(id),req,zones:z,price:PRICES[id]?PRICES[id][0]:null}));
     const b=bestNow(rows,s);
-    h+='<section class="calc"><div><div class="lbl">Plukk nå (oransje/gul)</div><div style="font-weight:600;font-size:16px;margin-top:3px">'+(b.length?b.map(r=>'<span class="q'+r.q+'">'+esc(r.name)+'</span>').join(' · '):(s>=300?'Du er på 300 – plukk det som er verdt mest':'–'))+'</div></div>'+
-      '<div style="margin-left:auto;text-align:right"><div class="big">'+(300-s)+'</div><div class="lbl">poeng igjen</div></div></section>';
-    h+='<div class="sec-h"><h3>Rute</h3><span>Alliance-vennlige soner</span></div>'+phases(HERB_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span>');
-    h+='<div class="sec-h"><h3>Alle urter</h3><span>Fargene viser oransje → gul → grønn → grå for hver urt; streken er din skill</span></div>'+nodeTable(rows,s,'Urt');
+    h+='<section class="calc"><div><div class="lbl">Pick now (orange/yellow)</div><div style="font-weight:600;font-size:16px;margin-top:3px">'+(b.length?b.map(r=>'<span class="q'+r.q+'">'+esc(r.name)+'</span>').join(' · '):(s>=300?'You are at 300 – pick whatever is worth the most':'–'))+'</div></div>'+
+      '<div style="margin-left:auto;text-align:right"><div class="big">'+(300-s)+'</div><div class="lbl">points left</div></div></section>';
+    h+='<div class="sec-h"><h3>Route</h3><span>Alliance-friendly zones</span></div>'+phases(HERB_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span>');
+    h+='<div class="sec-h"><h3>All herbs</h3><span>The colours show orange → yellow → green → grey for each herb; the line is your skill</span></div>'+nodeTable(rows,s,'Herb');
   }
   else if(P.id==='mining'){
     const rows=VEINS.map(([n,req,z,ore,bar])=>({name:n,q:1,req,zones:z+' · '+ore,price:bar&&PRICES[bar]?PRICES[bar][0]:null}));
     const b=bestNow(rows,s);
-    h+='<section class="calc"><div><div class="lbl">Grav nå (oransje/gul)</div><div style="font-weight:600;font-size:16px;margin-top:3px">'+(b.length?b.map(r=>esc(r.name)).join(' · '):'–')+'</div></div><div style="margin-left:auto;text-align:right"><div class="big">'+(300-s)+'</div><div class="lbl">poeng igjen</div></div></section>';
-    h+='<div class="sec-h"><h3>Rute</h3><span>Smelting gir også skillpoeng</span></div>'+phases(MINE_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span>');
-    h+='<div class="sec-h"><h3>Årer</h3><span>Bar-pris = AH-prisen på baren du smelter malmen til</span></div>'+nodeTable(rows,s,'Åre','Bar-pris');
-    h+='<section class="grid2"><div class="card"><div class="ch"><h3>Smelting</h3><span class="sub">skill-krav</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Bar</th><th class="r">Skill</th><th class="hide-s">Oppskrift</th><th class="r">AH-pris</th></tr></thead><tbody>'+
+    h+='<section class="calc"><div><div class="lbl">Mine now (orange/yellow)</div><div style="font-weight:600;font-size:16px;margin-top:3px">'+(b.length?b.map(r=>esc(r.name)).join(' · '):'–')+'</div></div><div style="margin-left:auto;text-align:right"><div class="big">'+(300-s)+'</div><div class="lbl">points left</div></div></section>';
+    h+='<div class="sec-h"><h3>Route</h3><span>Smelting also gives skill points</span></div>'+phases(MINE_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span>');
+    h+='<div class="sec-h"><h3>Veins</h3><span>Bar price = AH price of the bar you smelt the ore into</span></div>'+nodeTable(rows,s,'Vein','Bar price');
+    h+='<section class="grid2"><div class="card"><div class="ch"><h3>Smelting</h3><span class="sub">skill requirements</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Bar</th><th class="r">Skill</th><th class="hide-s">Recipe</th><th class="r">AH price</th></tr></thead><tbody>'+
       SMELT.map(([n,id,req,how])=>'<tr style="'+(s<req?'color:var(--ink-3)':'')+'"><td><span class="q'+iq(id)+'">'+esc(iname(id,n))+'</span></td><td class="r num">'+req+'</td><td class="hide-s">'+esc(how)+'</td><td class="r">'+priceCell(id)+'</td></tr>').join('')+
-      '</tbody></table></div></div><div class="card"><div class="ch"><h3>Edelstener</h3><span class="sub">bonus fra årene</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Stein</th><th class="r">AH-pris</th></tr></thead><tbody>'+
+      '</tbody></table></div></div><div class="card"><div class="ch"><h3>Gems</h3><span class="sub">bonus from the veins</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Gem</th><th class="r">AH price</th></tr></thead><tbody>'+
       GEMS.map(id=>'<tr><td><span class="q'+iq(id)+'">'+esc(iname(id))+'</span></td><td class="r">'+priceCell(id)+'</td></tr>').join('')+'</tbody></table></div></div></section>';
   }
   else if(P.id==='skinning'){
     const maxL=s<=100?Math.floor(s/10)+10:Math.floor(s/5);
     const needFor=L=>L<=10?1:L<=20?(L-10)*10:L*5;
-    h+='<section class="calc"><div><div class="lbl">Med skill '+s+' kan du skinne mobs opp til nivå</div><div class="big" style="margin-top:4px">'+Math.min(60,maxL)+'</div></div>'+
-      '<div><div class="lbl">Neste nivå ('+Math.min(61,maxL+1)+')</div><div style="font:600 16px var(--f-num);margin-top:4px">'+(maxL>=60?'–':'skill '+needFor(maxL+1))+'</div></div>'+
-      '<div style="margin-left:auto;max-width:360px;font-size:13px;color:var(--ink-2)">Krav: nivå ≤ 20 → (nivå − 10) × 10, over 20 → nivå × 5. Skinn mobs nær grensen din for flest poeng.</div></section>';
-    h+='<div class="sec-h"><h3>Rute</h3><span>Skinn alt du dreper mens du levler</span></div>'+phases(SKIN_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span><span class="t">'+p[4].map(id=>'<span class="q'+iq(id)+'">'+esc(iname(id))+'</span> '+(PRICES[id]?money(PRICES[id][0],{short:true}):'')).join(' · ')+'</span>');
+    h+='<section class="calc"><div><div class="lbl">With skill '+s+' you can skin mobs up to level</div><div class="big" style="margin-top:4px">'+Math.min(60,maxL)+'</div></div>'+
+      '<div><div class="lbl">Next level ('+Math.min(61,maxL+1)+')</div><div style="font:600 16px var(--f-num);margin-top:4px">'+(maxL>=60?'–':'skill '+needFor(maxL+1))+'</div></div>'+
+      '<div style="margin-left:auto;max-width:360px;font-size:13px;color:var(--ink-2)">Requirement: level ≤ 20 → (level − 10) × 10, above 20 → level × 5. Skin mobs close to your limit for the most points.</div></section>';
+    h+='<div class="sec-h"><h3>Route</h3><span>Skin everything you kill while levelling</span></div>'+phases(SKIN_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span><span class="t">'+p[4].map(id=>'<span class="q'+iq(id)+'">'+esc(iname(id))+'</span> '+(PRICES[id]?money(PRICES[id][0],{short:true}):'')).join(' · ')+'</span>');
     const ex=SKIN_EXTRA.slice().sort((a,b)=>((PRICES[b[0]]||[0])[0])-((PRICES[a[0]]||[0])[0]));
-    h+='<section class="card" style="margin-bottom:22px"><div class="ch"><h3>Lær og skjell verdt å se etter</h3><span class="sub">sortert etter AH-pris</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Vare</th><th>Fra</th><th class="r">AH-pris</th></tr></thead><tbody>'+
-      [2318,2319,4234,4304,8170,4232,4235,8171].map(id=>[id,'Vanlig lær/skinn']).concat(ex).map(([id,w])=>'<tr><td><span class="q'+iq(id)+'">'+esc(iname(id))+'</span></td><td class="muted">'+esc(w)+'</td><td class="r">'+priceCell(id)+'</td></tr>').join('')+
+    h+='<section class="card" style="margin-bottom:22px"><div class="ch"><h3>Leather and scales worth looking for</h3><span class="sub">sorted by AH price</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Item</th><th>From</th><th class="r">AH price</th></tr></thead><tbody>'+
+      [2318,2319,4234,4304,8170,4232,4235,8171].map(id=>[id,'Common leather/hide']).concat(ex).map(([id,w])=>'<tr><td><span class="q'+iq(id)+'">'+esc(iname(id))+'</span></td><td class="muted">'+esc(w)+'</td><td class="r">'+priceCell(id)+'</td></tr>').join('')+
       '</tbody></table></div></section>';
   }
   else if(P.id==='fishing'){
     const rk=FISH_RANKS.find(r=>s>=r[1]&&s<r[2])||FISH_RANKS[3];
-    h+='<section class="calc"><div><div class="lbl">Din rank</div><div class="big" style="font-size:24px;margin-top:4px">'+rk[0]+'</div></div><div style="max-width:420px"><div class="lbl">'+(s>=rk[2]-25&&rk!==FISH_RANKS[3]?'Snart tak – neste rank':'Lær rank')+'</div><div style="font-size:14px;margin-top:3px">'+esc((s>=rk[2]-25&&rk!==FISH_RANKS[3]?FISH_RANKS[FISH_RANKS.indexOf(rk)+1]:rk)[3])+'</div></div><div style="margin-left:auto;text-align:right"><div class="big">'+(300-s)+'</div><div class="lbl">poeng igjen</div></div></section>';
-    h+='<div class="sec-h"><h3>Hvor du fisker</h3><span>For lav skill i en sone gir «fisken slapp unna»</span></div>'+phases(FISH_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span>');
-    h+='<section class="grid2"><div class="card"><div class="ch"><h3>Ranks</h3></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Rank</th><th class="r">Skill</th><th>Hvor</th></tr></thead><tbody>'+
+    h+='<section class="calc"><div><div class="lbl">Your rank</div><div class="big" style="font-size:24px;margin-top:4px">'+rk[0]+'</div></div><div style="max-width:420px"><div class="lbl">'+(s>=rk[2]-25&&rk!==FISH_RANKS[3]?'Cap coming up – next rank':'Learn this rank')+'</div><div style="font-size:14px;margin-top:3px">'+esc((s>=rk[2]-25&&rk!==FISH_RANKS[3]?FISH_RANKS[FISH_RANKS.indexOf(rk)+1]:rk)[3])+'</div></div><div style="margin-left:auto;text-align:right"><div class="big">'+(300-s)+'</div><div class="lbl">points left</div></div></section>';
+    h+='<div class="sec-h"><h3>Where to fish</h3><span>Too low skill for a zone means “Your fish got away”</span></div>'+phases(FISH_ROUTE,s,p=>'<b>'+p[2]+'</b><span class="t">'+p[3]+'</span>');
+    h+='<section class="grid2"><div class="card"><div class="ch"><h3>Ranks</h3></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Rank</th><th class="r">Skill</th><th>Where</th></tr></thead><tbody>'+
       FISH_RANKS.map(r=>'<tr style="'+(r===rk?'background:color-mix(in srgb,var(--acc) 7%,var(--panel))':'')+'"><td><b>'+r[0]+'</b></td><td class="r num">'+r[1]+'–'+r[2]+'</td><td>'+esc(r[3])+'</td></tr>').join('')+
-      '</tbody></table></div></div><div class="card"><div class="ch"><h3>Lures</h3><span class="sub">midlertidig bonus til skill</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Lure</th><th class="r">Bonus</th><th>Fra</th></tr></thead><tbody>'+
+      '</tbody></table></div></div><div class="card"><div class="ch"><h3>Lures</h3><span class="sub">temporary skill bonus</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Lure</th><th class="r">Bonus</th><th>From</th></tr></thead><tbody>'+
       LURES.map(l=>'<tr><td>'+esc(l[0])+'</td><td class="r num">'+l[1]+'</td><td>'+esc(l[2])+'</td></tr>').join('')+'</tbody></table></div></div></section>';
-    h+='<section class="card" style="margin-bottom:22px"><div class="ch"><h3>Verdifull fangst</h3><span class="sub">fisk og muslinger på AH</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Vare</th><th class="r">AH-pris</th></tr></thead><tbody>'+
-      FISH_ITEMS.slice().sort((a,b)=>((PRICES[b]||[0])[0])-((PRICES[a]||[0])[0])).map(id=>'<tr><td><span class="q'+iq(id)+'">'+esc(iname(id))+'</span></td><td class="r">'+priceCell(id)+'</td></tr>').join('')+'</tbody></table></div><p class="note">Fishing gir flest poeng tidlig og blir tregere jo høyere du kommer. Fisken du fanger kan brukes direkte i Cooking-ruten.</p></section>';
+    h+='<section class="card" style="margin-bottom:22px"><div class="ch"><h3>Valuable catches</h3><span class="sub">fish and clams on the AH</span></div><div class="scroll-x"><table class="tbl"><thead><tr><th>Item</th><th class="r">AH price</th></tr></thead><tbody>'+
+      FISH_ITEMS.slice().sort((a,b)=>((PRICES[b]||[0])[0])-((PRICES[a]||[0])[0])).map(id=>'<tr><td><span class="q'+iq(id)+'">'+esc(iname(id))+'</span></td><td class="r">'+priceCell(id)+'</td></tr>').join('')+'</tbody></table></div><p class="note">Fishing gives the most points early and slows down the higher you get. The fish you catch can go straight into the Cooking route.</p></section>';
   }
   h+=methodBlock();
   return h;
@@ -850,8 +850,8 @@ function render(keepFocus){
 function setSkill(v,keep){const P=PBY[S.view];if(!P)return;v=Math.max(1,Math.min(300,Math.round(+v||1)));S.skill[P.id]=v;const ok=P.id+':'+S.variant;delete S.open[ok];save();render(keep)}
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('on'),1800)}
 function copyText(t){
-  const done=()=>toast('Handlelisten er kopiert');
-  const fb=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done()}catch(e){toast('Kunne ikke kopiere')}};
+  const done=()=>toast('Shopping list copied');
+  const fb=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();done()}catch(e){toast('Could not copy')}};
   try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fb);else fb()}catch(e){fb()}
 }
 document.addEventListener('click',e=>{
@@ -863,7 +863,7 @@ document.addEventListener('click',e=>{
     const el=document.getElementById('st-'+i);if(set.has(i)){set.delete(i);el.classList.remove('open');t.setAttribute('aria-expanded','false')}else{set.add(i);el.classList.add('open');t.setAttribute('aria-expanded','true')}return}
   if(t.dataset.jump!=null){const i=+t.dataset.jump;const P=PBY[S.view];const k=P.id+':'+S.variant;const set=S.open[k]||(S.open[k]=new Set());set.add(i);const el=document.getElementById('st-'+i);if(el){el.classList.add('open');el.querySelector('.st-main').setAttribute('aria-expanded','true');el.scrollIntoView({behavior:'smooth',block:'center'})}return}
   if(t.dataset.act==='copy'){const P=PBY[S.view];const R=D.profs[P.id][S.variant];const s=sk(P.id);const list=shopping(R,routeCalc(R,s,S.horizon));
-    copyText('Handleliste '+P.name+' '+s+'→300\n'+list.map(x=>iname(x.id)+' x'+x.q).join('\n'));return}
+    copyText('Shopping list '+P.name+' '+s+'→300\n'+list.map(x=>iname(x.id)+' x'+x.q).join('\n'));return}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='horizon'){S.horizon=+e.target.value;save();render();return}
@@ -876,23 +876,23 @@ window.addEventListener('hashchange',()=>{route();render();window.scrollTo(0,0)}
 
 /* ---------- live data ---------- */
 function isLive(){return !!D&&(D.source==='live'||D.source==='cache')}
-function fmtTime(iso){try{return new Date(iso).toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'})}catch(e){return ''}}
-function fmtWhen(iso){const d=new Date(iso);if(isNaN(d))return '';return d.toDateString()===new Date().toDateString()?'i dag '+fmtTime(iso):d.toLocaleDateString('nb-NO',{day:'numeric',month:'short'})+' '+fmtTime(iso)}
-function ago(iso){const m=Math.round((Date.now()-new Date(iso))/60000);if(!isFinite(m))return '';if(m<1)return 'nå nettopp';if(m<60)return m+' min siden';const h=Math.floor(m/60);if(h<48)return h+' t siden';return Math.floor(h/24)+' d siden'}
+function fmtTime(iso){try{return new Date(iso).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}catch(e){return ''}}
+function fmtWhen(iso){const d=new Date(iso);if(isNaN(d))return '';return d.toDateString()===new Date().toDateString()?'today '+fmtTime(iso):d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+fmtTime(iso)}
+function ago(iso){const m=Math.round((Date.now()-new Date(iso))/60000);if(!isFinite(m))return '';if(m<1)return 'just now';if(m<60)return m+' min ago';const h=Math.floor(m/60);if(h<48)return h+' h ago';return Math.floor(h/24)+' d ago'}
 function updateChip(){
   const c=document.getElementById('chip');
-  if(!D){c.className='chip';c.innerHTML='<i></i><b>Henter priser…</b>';return}
+  if(!D){c.className='chip';c.innerHTML='<i></i><b>Loading prices…</b>';return}
   const t=D.scannedAt||D.generatedAt;
-  if(!isLive()){c.className='chip old';c.title='Viser lagrede priser – live-oppdatering er ikke tilgjengelig akkurat nå';c.innerHTML='<i></i><b>Lagret</b><span class="ct"> · priser fra '+esc(D.asOf||'')+'</span><span class="cm"> · '+esc(D.market||'')+'</span>';return}
+  if(!isLive()){c.className='chip old';c.title='Showing saved prices – live updates are not available right now';c.innerHTML='<i></i><b>Saved</b><span class="ct"> · prices from '+esc(D.asOf||'')+'</span><span class="cm"> · '+esc(D.market||'')+'</span>';return}
   const age=(Date.now()-new Date(t))/60000;
   c.className='chip '+(age>180?'warn':'live');
-  c.title='Siste AH-skann '+fmtWhen(t)+' · rutene regnet '+fmtWhen(D.generatedAt)+' · oppdateres hvert '+(D.refreshMinutes||30)+'. minutt';
-  c.innerHTML='<i></i><b>Live</b><span class="ct"> · AH-skann '+ago(t)+'</span><span class="cm"> · '+esc(D.market||'')+'</span>';
+  c.title='Last AH scan '+fmtWhen(t)+' · routes calculated '+fmtWhen(D.generatedAt)+' · updates every '+(D.refreshMinutes||30)+' minutes';
+  c.innerHTML='<i></i><b>Live</b><span class="ct"> · AH scan '+ago(t)+'</span><span class="cm"> · '+esc(D.market||'')+'</span>';
 }
 function updateFoot(){
   const f=document.getElementById('foot');if(!D){f.innerHTML='';return}
   const live=isLive();
-  f.innerHTML='<p>'+(live?'Priser: AHledger, '+esc(D.market)+' – hentes automatisk hvert '+(D.refreshMinutes||30)+'. minutt. Siste AH-skann '+fmtWhen(D.scannedAt||D.generatedAt)+'.':'Priser: AHledger-snapshot '+esc(D.asOf)+', '+esc(D.market)+'.')+' Oppskrifter og nivåer: seemeta'+(D.recipesBuild?' (build '+esc(D.recipesBuild)+')':'')+' og Warcraft Wiki.</p><p>Salgsverdier er etter 5 % AH-avgift. Prisene endrer seg – bruk tallene som retning, ikke fasit. Skill-nivået ditt lagres bare i denne nettleseren.</p>';
+  f.innerHTML='<p>'+(live?'Prices: AHledger, '+esc(D.market)+' – fetched automatically every '+(D.refreshMinutes||30)+' minutes. Last AH scan '+fmtWhen(D.scannedAt||D.generatedAt)+'.':'Prices: AHledger snapshot '+esc(D.asOf)+', '+esc(D.market)+'.')+' Recipes and skill levels: seemeta'+(D.recipesBuild?' (build '+esc(D.recipesBuild)+')':'')+' and Warcraft Wiki.</p><p>Sale values are after the 5% AH cut. Prices change – treat the numbers as a guide, not gospel. Your skill levels are only saved in this browser.</p>';
 }
 function setData(j){D=j;ITEMS=j.items||{};PRICES=j.prices||{};S.open={}}
 let etag=null,loading=false;
@@ -908,17 +908,17 @@ async function loadData(){
       setData(j);
       const focused=document.activeElement&&document.activeElement.id==='skill';
       render(focused);updateFoot();
-      if(!first&&j.source==='live')toast('Nye AH-priser – rutene er regnet på nytt');
+      if(!first&&j.source==='live')toast('New AH prices – routes recalculated');
     }
   }catch(e){
     if(!D){
       try{const r=await fetch('snapshot.json');const j=await r.json();j.source='snapshot';setData(j);render();updateFoot()}
-      catch(e2){main.innerHTML='<div class="empty">Kunne ikke hente priser akkurat nå. Prøv å laste siden på nytt om litt.</div>'}
+      catch(e2){main.innerHTML='<div class="empty">Could not load prices right now. Try reloading the page in a moment.</div>'}
     }
   }finally{loading=false;updateChip()}
 }
 applyTheme();route();renderRail();updateChip();
-main.innerHTML='<div class="loading">Henter ferske AH-priser…</div>';
+main.innerHTML='<div class="loading">Loading fresh AH prices…</div>';
 loadData();
 setInterval(loadData,120000);
 setInterval(updateChip,30000);

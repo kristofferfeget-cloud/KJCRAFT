@@ -2,7 +2,7 @@
   "name": "wow-forever-yrkesruter",
   "version": "1.0.0",
   "private": true,
-  "description": "Billigste vei fra 1 til 300 i alle yrker i WoW: Forever, regnet ut fra live AH-priser.",
+  "description": "The cheapest way from 1 to 300 in every profession in WoW: Forever, calculated from live AH prices.",
   "type": "module",
   "main": "server.js",
   "scripts": {
