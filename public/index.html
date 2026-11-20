@@ -237,6 +237,19 @@ dl.kv dd{margin:0}
 .gold .nm{font-weight:600}
 .empty{padding:22px 18px;color:var(--ink-3);font-size:14px}
 
+details.filters{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin:0 0 18px}
+details.filters summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 16px;font-size:13.5px;color:var(--ink-2)}
+details.filters summary::-webkit-details-marker{display:none}
+details.filters summary b{color:var(--ink);font-weight:600}
+.fs{display:flex;flex-wrap:wrap;gap:6px}
+.fs span{font:500 12px var(--f-num);padding:2px 8px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line-2);color:var(--ink-2)}
+.fhint{font-size:12px;color:var(--ink-3)}
+.fedit{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--acc)}
+details.filters[open] .fedit::after{content:" ▴"}details.filters:not([open]) .fedit::after{content:" ▾"}
+.fbody{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;padding:14px 16px 16px;border-top:1px solid var(--line-2)}
+.fbody input[type=number]{height:38px;width:110px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);font:600 15px var(--f-num);padding:0 10px}
+.fbody p{flex:1 1 340px;margin:0;font-size:13px;color:var(--ink-2);max-width:640px;line-height:1.5}
+.fbody .reset{height:38px}
 details.method{margin-top:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);font-size:14px;color:var(--ink-2)}
 details.method summary{cursor:pointer;padding:13px 18px;font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
 details.method summary::-webkit-details-marker{display:none}
@@ -378,7 +391,7 @@ footer p{margin:0 0 4px}
 (function(){
 "use strict";
 let D=null, ITEMS={}, PRICES={};
-const API='/api/data';
+function apiUrl(){const f=S.filters;return '/api/data?minSold='+f.minSold+'&minListed='+f.minListed+'&cut='+f.cut}
 const KEY='wowf-yrkesruter-v1';
 
 const ICON={
@@ -522,15 +535,17 @@ const LURES=[['Shiny Bauble','+25','Vendor'],['Nightcrawlers','+50','Vendor'],['
 const FISH_ITEMS=[13893,13759,4655,5504,5503,5500,7971];
 
 /* ---------- state ---------- */
-const DEF={variant:'best',horizon:1,theme:'auto',skill:{tailoring:140,alchemy:210}};
+const DEF_F={minSold:3,minListed:5,cut:5};
+const DEF={variant:'best',horizon:1,theme:'auto',skill:{tailoring:140,alchemy:210},filters:DEF_F};
 let S=load(); S.view='overview'; S.open={};
 function load(){
   try{const v=JSON.parse(localStorage.getItem(KEY)||'null');
-    if(v&&typeof v==='object')return {variant:v.variant==='trainer'?'trainer':'best',horizon:[1,3,7].includes(v.horizon)?v.horizon:1,theme:['auto','light','dark'].includes(v.theme)?v.theme:'auto',skill:Object.assign({},DEF.skill,v.skill||{})};
+    if(v&&typeof v==='object')return {variant:v.variant==='trainer'?'trainer':'best',horizon:[1,3,7].includes(v.horizon)?v.horizon:1,theme:['auto','light','dark'].includes(v.theme)?v.theme:'auto',skill:Object.assign({},DEF.skill,v.skill||{}),filters:cleanF(v.filters)};
   }catch(e){}
   return JSON.parse(JSON.stringify(DEF));
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify({variant:S.variant,horizon:S.horizon,theme:S.theme,skill:S.skill}))}catch(e){}}
+function cleanF(f){f=f||{};const n=(v,d,hi)=>{v=+v;return Number.isFinite(v)&&v>=0?Math.min(hi,v):d};return {minSold:Math.round(n(f.minSold,DEF_F.minSold,100000)*10)/10,minListed:Math.round(n(f.minListed,DEF_F.minListed,100000)),cut:+f.cut===15?15:5}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({variant:S.variant,horizon:S.horizon,theme:S.theme,skill:S.skill,filters:S.filters}))}catch(e){}}
 const sk=id=>{const v=+S.skill[id];return v>=1&&v<=300?Math.round(v):1};
 
 /* ---------- helpers ---------- */
@@ -621,7 +636,7 @@ function srcBadge(src,extra){const s=SRC[src]||[src,src];return '<span class="ba
 
 /* ---------- overview ---------- */
 function viewOverview(){
-  let h='<section class="ov-hero"><div><h1>Profession routes <em>1–300</em></h1><p>The cheapest way up in every profession in WoW: Forever, calculated from '+(isLive()?'live AH prices on '+esc(D.market)+' – routes are recalculated every '+(D.refreshMinutes||30)+' minutes':'AH prices on '+esc(D.market)+', '+esc(D.asOf))+'. Pick a profession, enter your skill, and get the rest of the route, a shopping list and what makes gold along the way.</p></div>'+controls(false)+'</section>';
+  let h='<section class="ov-hero"><div><h1>Profession routes <em>1–300</em></h1><p>The cheapest way up in every profession in WoW: Forever, calculated from '+(isLive()?'live AH prices on '+esc(D.market)+' – routes are recalculated every '+(D.refreshMinutes||30)+' minutes':'AH prices on '+esc(D.market)+', '+esc(D.asOf))+'. Pick a profession, enter your skill, and get the rest of the route, a shopping list and what makes gold along the way.</p></div>'+controls(false)+'</section>'+filterPanel();
   h+='<h2 class="ov-h">Crafting <small>net = sale value − mats − patterns for the rest of the route</small></h2><section class="ov-grid">';
   PROFS.filter(p=>p.kind==='craft').forEach(p=>{
     const R=D.profs[p.id][S.variant],s=sk(p.id),C=routeCalc(R,s,S.horizon);
@@ -645,13 +660,13 @@ function viewCraft(P){
   const R=D.profs[P.id][S.variant],s=sk(P.id),H=S.horizon,C=routeCalc(R,s,H),T=C.T;
   const ci=curStep(R,s),okey=P.id+':'+S.variant;
   const open=S.open[okey]||(S.open[okey]=new Set(ci>=0?[ci]:[]));
-  let h=profHead(P);
+  let h=profHead(P)+filterPanel();
   // stats
   const left=300-s;
   h+='<dl class="stats">'+
     '<div class="stat"><dt>Remaining</dt><dd>'+left+' <span class="muted" style="font-size:13px">points</span></dd><small>≈ '+nf(T.crafts)+' crafts</small></div>'+
     '<div class="stat"><dt>Mats</dt><dd>'+money(T.mats,{short:true})+'</dd><small>to buy for the rest of the route</small></div>'+
-    '<div class="stat"><dt>Sale value</dt><dd>'+money(T.val,{short:true})+'</dd><small>after the 5% AH cut</small></div>'+
+    '<div class="stat"><dt>Sale value</dt><dd>'+money(T.val,{short:true})+'</dd><small>after the '+cutPct()+'% AH cut</small></div>'+
     '<div class="stat"><dt>Patterns</dt><dd>'+money(T.pat,{short:true})+'</dd><small>recipes from the AH</small></div>'+
     '<div class="stat hl"><dt>Net</dt><dd>'+money(T.net,{sign:true,short:true})+'</dd><small>'+(T.net>=0?'you make money levelling':'cost to reach 300')+'</small></div></dl>';
   // track
@@ -682,10 +697,10 @@ function viewCraft(P){
   const rec=[];const seen=new Set();R.forEach((st,i)=>{if(seen.has(st[2]))return;seen.add(st[2]);rec.push({st,have:R.some(x=>x[2]===st[2]&&x[0]<s),done:R.filter(x=>x[2]===st[2]).every(x=>s>=x[1])})});
   h+='<section class="grid2"><div class="card"><div class="ch"><h3>Shopping list '+s+' → 300</h3>'+(shop.length?'<button type="button" class="btn" data-act="copy">'+ICON.copy+'Copy</button>':'')+'</div>';
   if(shop.length){
-    h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Mats</th><th class="r">Qty</th><th class="r hide-s">Price/ea</th><th class="r">Total</th></tr></thead><tbody>'+
-      shop.map(x=>'<tr><td><span class="q'+iq(x.id)+'">'+esc(iname(x.id))+'</span>'+howTag(x.id)+'</td><td class="r num">'+nf(x.q)+'</td><td class="r hide-s">'+priceCell(x.id)+'</td><td class="r">'+money(x.total,{short:true})+'</td></tr>').join('')+
-      '</tbody><tfoot><tr><td>Total</td><td></td><td class="hide-s"></td><td class="r">'+money(shop.reduce((a,x)=>a+x.total,0),{short:true})+'</td></tr></tfoot></table></div>'+
-      '<p class="note">Expected amounts – on yellow and green steps you may need a few more. “craft it” means it is cheaper to make it yourself (e.g. bolts of cloth) than to buy it.</p>';
+    h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Mats</th><th class="r">Qty</th><th class="r hide-s">On AH</th><th class="r hide-s">Price/ea</th><th class="r">Total</th></tr></thead><tbody>'+
+      shop.map(x=>{const pr=PRICES[x.id]||[];const listed=pr[2];const short=x.how==='AH'&&listed!=null&&x.q>listed;return '<tr><td><span class="q'+iq(x.id)+'">'+esc(iname(x.id))+'</span>'+howTag(x.id)+(short?' <span class="badge warn" title="Not enough on the AH right now to buy everything at this price">only '+nf(listed)+' listed</span>':'')+'</td><td class="r num">'+nf(x.q)+'</td><td class="r num hide-s muted">'+(listed!=null?nf(listed):'–')+'</td><td class="r hide-s">'+priceCell(x.id)+'</td><td class="r">'+money(x.total,{short:true})+'</td></tr>'}).join('')+
+      '</tbody><tfoot><tr><td>Total</td><td></td><td class="hide-s"></td><td class="hide-s"></td><td class="r">'+money(shop.reduce((a,x)=>a+x.total,0),{short:true})+'</td></tr></tfoot></table></div>'+
+      '<p class="note">Expected amounts – on yellow and green steps you may need a few more. “craft it” means it is cheaper to make it yourself (e.g. bolts of cloth) than to buy it. “only N listed” means there are not enough on the AH right now to buy everything at this price.</p>';
   }else h+='<div class="empty">Nothing to buy – the route is complete.</div>';
   h+='</div><div class="card"><div class="ch"><h3>Recipes in the route</h3><span class="sub">'+rec.length+' total</span></div><ul class="rec">'+
     rec.map(r=>{const st=r.st;return '<li class="'+(r.done?'have':'')+'"><span class="nm '+qcls(st[3])+'">'+esc(st[2])+'</span><span>'+srcBadge(st[9])+'</span><span class="meta">Learn at '+st[5]+(st[10]?' · pattern approx. '+moneyPlain(st[10])+' on the AH':'')+(r.done?' · done':r.have?' · in use now':'')+'</span></li>'}).join('')+
@@ -701,7 +716,7 @@ function viewCraft(P){
           '<td class="r num">'+(can?'<span class="badge ok" title="You can craft this">'+g[3]+'</span>':g[3])+'</td>'+
           '<td>'+srcBadge(g[4])+(g[9]?' <span class="muted" style="font-size:12px">'+esc(g[9])+'</span>':'')+(g[10]?' <span class="muted" style="font-size:12px">pattern '+moneyPlain(g[10])+'</span>':'')+'</td>'+
           '<td class="r hide-s">'+money(g[5],{short:true})+'</td><td class="r hide-s">'+money(g[6],{short:true})+'</td><td class="r">'+money(prof,{sign:true,short:true})+'</td><td class="r num hide-s">'+(g[7]!=null?(Math.round(g[7]*10)/10).toLocaleString('en-GB'):'–')+'</td></tr>'}).join('')+
-      '</tbody></table></div><p class="note">Profit per craft = AH price after the cut − mats. “Sold/day” is how many trade on the AH per day – low volume means you will not sell many.</p>';
+      '</tbody></table></div><p class="note">Profit per craft = AH price after the '+cutPct()+'% cut − mats. “Sold/day” is how many trade on the AH per day – low volume means you will not sell many.</p>';
   }else h+='<div class="empty">No clear gold tips for this profession.</div>';
   h+='</section>'+methodBlock();
   return h;
@@ -732,6 +747,7 @@ function stepRow(st,c,i,s,isOpen,ci){
   if(crafts*mats>3000000)warn.push('<span class="badge warn" title="This step needs a lot of gold in mats">High capital</span>');
   if(how==='AH'&&sold<5&&crafts>sold*2)warn.push('<span class="badge warn" title="Low trading volume on the AH">Slow sales</span>');
   if(how==='none')warn.push('<span class="badge" title="Enchants cannot be sold on the AH">Not sellable</span>');
+  if(st[18]===1)warn.push('<span class="badge warn" title="Some mats are barely on the AH – nothing else works at this skill, so the price may not hold">Thin market</span>');
   const netShow=done?null:c.net;
   const stepNetFull=(()=>{let v=0;if(how==='AH'){const n1=Math.min(crafts,(sold||0)*S.horizon);v=n1*sale+(crafts-n1)*(vend||0)}else if(how==='vendor')v=crafts*sale;return v-crafts*mats})();
   const per=reag.map(([id,q])=>'<li><span class="qt">'+q+'×</span><span class="q'+iq(id)+'">'+esc(iname(id))+'</span><span class="pr">'+priceCell(id)+howTag(id)+'</span></li>').join('');
@@ -752,18 +768,44 @@ function stepRow(st,c,i,s,isOpen,ci){
       '<div><h4>Details</h4><dl class="kv">'+
         '<dt>Learn</dt><dd>'+esc((SRC[src]||[src])[0])+' · skill '+learn+(pp?' · pattern '+moneyPlain(pp):'')+'</dd>'+
         '<dt>Colours</dt><dd><span class="lg"><span class="o">'+learn+'</span><span class="y">'+y+'</span><span class="g">'+g+'</span><span class="x">'+gr+'</span></span></dd>'+
-        '<dt>Sale</dt><dd>'+saleText(st)+'</dd>'+
-        (how==='AH'?'<dt>Vendor</dt><dd>'+money(vend)+' per craft</dd>':'')+
+        '<dt>Sale</dt><dd>'+saleDetail(st)+'</dd>'+
+        (how!=='none'&&st.length>20?'<dt>Market</dt><dd>~'+fmt1(sold)+' sold/day · '+(st[20]!=null?nf(st[20]):'0')+' listed</dd>':'')+
         '<dt>Step total</dt><dd>'+money(stepNetFull,{sign:true,short:true})+' over '+nf(Math.ceil(crafts))+' crafts</dd>'+
       '</dl></div>'+
     '</div></div>';
+}
+function fv(){return (D&&D.filters)||S.filters}
+function cutPct(){return (D&&D.filters&&D.filters.cut)||S.filters.cut||5}
+function fmt1(x){return x==null?'0':(Math.round(x*10)/10).toLocaleString('en-GB')}
+function saleDetail(st){
+  const how=st[14],vend=st[16],sold=st[15];
+  if(how==='none')return 'cannot be sold';
+  if(st.length<=20)return saleText(st);
+  const ah=st[19],listed=st[20],liq=st[21];
+  let s='AH '+(ah!=null?money(ah):'<span class="m none">–</span>')+' <span class="muted">after '+cutPct()+'% cut</span> · vendor '+money(vend)+' → <b>'+(how==='AH'?'AH':'vendor')+'</b>';
+  if(how!=='AH'&&ah!=null&&!liq)s+='<br><span class="muted">AH price ignored: only '+fmt1(sold)+' sold/day and '+(listed!=null?nf(listed):'0')+' listed</span>';
+  else if(how!=='AH'&&ah!=null)s+='<br><span class="muted">The vendor pays more than the AH</span>';
+  return s;
+}
+function filterPanel(){
+  const f=S.filters,applied=D&&D.filters,match=applied&&applied.minSold===f.minSold&&applied.minListed===f.minListed&&applied.cut===f.cut;
+  const hint=!D?'':!applied?'Filters apply once live prices are loaded':!match?'Recalculating…':(D.ignored?nf(D.ignored)+' thin AH items ignored':'');
+  return '<details class="filters"'+(S.fOpen?' open':'')+'><summary><b>Filters</b><span class="fs"><span>≥ '+fmt1(f.minSold)+' sold/day</span><span>≥ '+nf(f.minListed)+' listed</span><span>'+f.cut+'% AH cut</span></span><span class="fhint" id="fhint">'+hint+'</span><span class="fedit">Edit</span></summary>'+
+    '<div class="fbody">'+
+      '<label class="fld"><span>Min. sold per day</span><input id="f-minSold" type="number" min="0" step="1" inputmode="decimal" value="'+f.minSold+'"></label>'+
+      '<label class="fld"><span>Min. listed on AH</span><input id="f-minListed" type="number" min="0" step="1" inputmode="numeric" value="'+f.minListed+'"></label>'+
+      '<label class="fld"><span>AH cut</span><select id="f-cut"><option value="5"'+(f.cut===5?' selected':'')+'>5% (faction AH)</option><option value="15"'+(f.cut===15?' selected':'')+'>15% (neutral AH)</option></select></label>'+
+      '<button type="button" class="btn reset" data-act="freset">Reset</button>'+
+      '<p>Items that sell fewer than this per day, or have fewer than this listed, are ignored on the AH: you are not told to buy them there (vendor or crafting is used instead, or the recipe is skipped), and their AH price is not counted when you sell (vendor price instead). Sales are counted after the AH cut, and if a vendor pays more than the AH, the vendor price is used.</p>'+
+    '</div></details>';
 }
 function methodBlock(){
   return '<details class="method"><summary>How the routes are calculated</summary><ul>'+
     '<li>Prices are fetched automatically from AHledger (median price and daily sales) every '+((D&&D.refreshMinutes)||30)+' minutes, and every route is recalculated each time. The page picks up new numbers on its own.</li>'+
     '<li>At every skill level the recipe with the lowest cost per skill point is picked: mats minus expected sale value, plus the pattern price the first time, with a small surcharge for time and tied-up gold, and a small penalty for switching recipes often.</li>'+
     '<li>Skill-up chance: orange 100%, yellow and green (grey − skill) / (grey − yellow), grey 0%. “Crafts” is the expected number.</li>'+
-    '<li>Sale value is the AH price after the 5% cut, but only for as many as the market trades over the chosen number of days. The rest is counted at vendor price.</li>'+
+    '<li>Sale value is the AH price after the AH cut ('+cutPct()+'%), but only for as many as the market trades over the chosen number of days – the rest is counted at vendor price. If a vendor pays more than the AH, the vendor price is used.</li>'+
+    '<li>Filters: items that sell fewer than '+fmt1(fv().minSold)+' per day or have fewer than '+fv().minListed+' listed are ignored on the AH. They are not bought there (vendor or crafting is used instead, or the recipe is skipped), and their AH price is not counted when selling.</li>'+
     '<li>Left out of the routes: recipes with a cooldown (transmutes, Mooncloth, salt), Gnomish/Goblin specialization, reputation recipes and recipes with an unknown source. Drop and quest patterns are only used when they cost 6g or less on the AH.</li>'+
     '<li>Mats price is the cheapest of AH, vendor and crafting it yourself. “Trainer only” uses trainer recipes as far as possible, and vendor/drop recipes only where the trainer has nothing that gives points.</li>'+
     '<li>The gathering professions use classic skill thresholds (orange, yellow, green, grey) and common Alliance zones. Check in game whether Forever has changed anything.</li>'+
@@ -845,7 +887,7 @@ function render(keepFocus){
   document.documentElement.style.setProperty('--acc',P?P.hue:'#3b6fe0');
   renderRail();
   main.innerHTML=!P?viewOverview():P.kind==='craft'?viewCraft(P):viewGather(P);
-  if(keepFocus){const i=document.getElementById('skill');if(i){i.focus();try{const v=i.value;i.value='';i.value=v}catch(e){}}}
+  if(keepFocus){const i=document.getElementById(typeof keepFocus==='string'?keepFocus:'skill');if(i){i.focus();if(i.tagName==='INPUT'){try{const v=i.value;i.value='';i.value=v}catch(e){}}}}
 }
 function setSkill(v,keep){const P=PBY[S.view];if(!P)return;v=Math.max(1,Math.min(300,Math.round(+v||1)));S.skill[P.id]=v;const ok=P.id+':'+S.variant;delete S.open[ok];save();render(keep)}
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('on'),1800)}
@@ -862,15 +904,21 @@ document.addEventListener('click',e=>{
   if(t.dataset.toggle!=null){const i=+t.dataset.toggle;const P=PBY[S.view];const k=P.id+':'+S.variant;const set=S.open[k]||(S.open[k]=new Set());
     const el=document.getElementById('st-'+i);if(set.has(i)){set.delete(i);el.classList.remove('open');t.setAttribute('aria-expanded','false')}else{set.add(i);el.classList.add('open');t.setAttribute('aria-expanded','true')}return}
   if(t.dataset.jump!=null){const i=+t.dataset.jump;const P=PBY[S.view];const k=P.id+':'+S.variant;const set=S.open[k]||(S.open[k]=new Set());set.add(i);const el=document.getElementById('st-'+i);if(el){el.classList.add('open');el.querySelector('.st-main').setAttribute('aria-expanded','true');el.scrollIntoView({behavior:'smooth',block:'center'})}return}
+  if(t.dataset.act==='freset'){setFilters(Object.assign({},DEF_F));return}
   if(t.dataset.act==='copy'){const P=PBY[S.view];const R=D.profs[P.id][S.variant];const s=sk(P.id);const list=shopping(R,routeCalc(R,s,S.horizon));
     copyText('Shopping list '+P.name+' '+s+'→300\n'+list.map(x=>iname(x.id)+' x'+x.q).join('\n'));return}
 });
 document.addEventListener('change',e=>{
   if(e.target.id==='horizon'){S.horizon=+e.target.value;save();render();return}
+  if(e.target.id==='f-cut'){setFilters(Object.assign({},S.filters,{cut:+e.target.value}),'f-cut');return}
   if(e.target.id==='skill'){setSkill(e.target.value)}
 });
+let fT;
+function setFilters(f,focusId){S.filters=cleanF(f);save();const hint=document.getElementById('fhint');if(hint)hint.textContent='Recalculating…';clearTimeout(fT);fT=setTimeout(()=>{render(focusId||false);loadData()},350)}
+document.addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('filters'))S.fOpen=e.target.open},true);
 let skT;
-document.addEventListener('input',e=>{if(e.target.id!=='skill')return;clearTimeout(skT);const v=e.target.value;if(v==='')return;skT=setTimeout(()=>setSkill(v,true),450)});
+document.addEventListener('input',e=>{if(e.target.id==='f-minSold'||e.target.id==='f-minListed'){const v=e.target.value;if(v==='')return;const f=Object.assign({},S.filters);f[e.target.id.slice(2)]=+v;clearTimeout(skT);skT=setTimeout(()=>setFilters(f,e.target.id),500);return}
+  if(e.target.id!=='skill')return;clearTimeout(skT);const v=e.target.value;if(v==='')return;skT=setTimeout(()=>setSkill(v,true),450)});
 document.addEventListener('keydown',e=>{if(e.target.id==='skill'&&e.key==='Enter'){clearTimeout(skT);setSkill(e.target.value,true)}});
 window.addEventListener('hashchange',()=>{route();render();window.scrollTo(0,0)});
 
@@ -892,30 +940,33 @@ function updateChip(){
 function updateFoot(){
   const f=document.getElementById('foot');if(!D){f.innerHTML='';return}
   const live=isLive();
-  f.innerHTML='<p>'+(live?'Prices: AHledger, '+esc(D.market)+' – fetched automatically every '+(D.refreshMinutes||30)+' minutes. Last AH scan '+fmtWhen(D.scannedAt||D.generatedAt)+'.':'Prices: AHledger snapshot '+esc(D.asOf)+', '+esc(D.market)+'.')+' Recipes and skill levels: seemeta'+(D.recipesBuild?' (build '+esc(D.recipesBuild)+')':'')+' and Warcraft Wiki.</p><p>Sale values are after the 5% AH cut. Prices change – treat the numbers as a guide, not gospel. Your skill levels are only saved in this browser.</p>';
+  f.innerHTML='<p>'+(live?'Prices: AHledger, '+esc(D.market)+' – fetched automatically every '+(D.refreshMinutes||30)+' minutes. Last AH scan '+fmtWhen(D.scannedAt||D.generatedAt)+'.':'Prices: AHledger snapshot '+esc(D.asOf)+', '+esc(D.market)+'.')+' Recipes and skill levels: seemeta'+(D.recipesBuild?' (build '+esc(D.recipesBuild)+')':'')+' and Warcraft Wiki.</p><p>Sale values are after the '+cutPct()+'% AH cut. Prices change – treat the numbers as a guide, not gospel. Your skill levels are only saved in this browser.</p>';
 }
 function setData(j){D=j;ITEMS=j.items||{};PRICES=j.prices||{};S.open={}}
-let etag=null,loading=false;
+let etag=null,etagUrl=null,loading=false,again=false;
 async function loadData(){
-  if(loading)return;loading=true;
+  if(loading){again=true;return}loading=true;
+  const url=apiUrl();
   try{
-    const r=await fetch(API,{cache:'no-cache',headers:etag?{'If-None-Match':etag}:{}});
+    const r=await fetch(url,{cache:'no-cache',headers:etag&&etagUrl===url?{'If-None-Match':etag}:{}});
     if(r.status===304){updateChip();return}
     if(!r.ok)throw new Error('HTTP '+r.status);
-    const j=await r.json();etag=r.headers.get('etag');
-    const first=!D,changed=!D||j.generatedAt!==D.generatedAt||j.source!==D.source;
+    const j=await r.json();etag=r.headers.get('etag');etagUrl=url;
+    const fk=x=>x?x.minSold+'|'+x.minListed+'|'+x.cut:'';
+    const first=!D,changed=!D||j.generatedAt!==D.generatedAt||j.source!==D.source||fk(j.filters)!==fk(D.filters);
     if(changed){
+      const prevGen=D&&D.generatedAt;
       setData(j);
-      const focused=document.activeElement&&document.activeElement.id==='skill';
-      render(focused);updateFoot();
-      if(!first&&j.source==='live')toast('New AH prices – routes recalculated');
+      const ae=document.activeElement;
+      render(ae&&ae.id?ae.id:false);updateFoot();
+      if(!first&&j.source==='live'&&prevGen!==j.generatedAt)toast('New AH prices – routes recalculated');
     }
   }catch(e){
     if(!D){
       try{const r=await fetch('snapshot.json');const j=await r.json();j.source='snapshot';setData(j);render();updateFoot()}
       catch(e2){main.innerHTML='<div class="empty">Could not load prices right now. Try reloading the page in a moment.</div>'}
     }
-  }finally{loading=false;updateChip()}
+  }finally{loading=false;updateChip();if(again){again=false;loadData()}}
 }
 applyTheme();route();renderRail();updateChip();
 main.innerHTML='<div class="loading">Loading fresh AH prices…</div>';

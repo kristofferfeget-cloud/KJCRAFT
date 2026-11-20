@@ -15,6 +15,7 @@ const REFRESH_MINUTES = Math.max(10, +process.env.REFRESH_MINUTES || 30);
 const RECIPES_REFRESH_HOURS = Math.max(1, +process.env.RECIPES_REFRESH_HOURS || 24);
 const CACHE_DIR = process.env.CACHE_DIR || path.join(ROOT, '.cache');
 const OFFLINE = process.env.OFFLINE === '1'; // serve the bundled snapshot only (for local testing)
+const DEFAULT_FILTERS = { minSold: 3, minListed: 5, cut: 5 }; // cut in percent
 
 const overrides = JSON.parse(await readFile(path.join(ROOT, 'data', 'overrides.json'), 'utf8'));
 
@@ -23,16 +24,67 @@ const fmtDate = (iso) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Os
 
 const state = {
   payload: null, body: null, gz: null, etag: null,
+  raw: null, variants: new Map(),
   recipes: null, recipesAt: 0, recipesMeta: null,
   lastOk: null, lastError: null, lastAttempt: null, lastDurationMs: null, running: false, nextAt: null
 };
 
-function setPayload(p) {
+function pack(p) {
   const json = JSON.stringify(p);
+  const body = Buffer.from(json);
+  return { body, gz: gzipSync(body), etag: '"' + createHash('sha1').update(json).digest('hex').slice(0, 20) + '"' };
+}
+function setPayload(p) {
+  const pk = pack(p);
   state.payload = p;
-  state.body = Buffer.from(json);
-  state.gz = gzipSync(state.body);
-  state.etag = '"' + createHash('sha1').update(json).digest('hex').slice(0, 20) + '"';
+  state.body = pk.body;
+  state.gz = pk.gz;
+  state.etag = pk.etag;
+  state.variants.clear();
+}
+
+// Read filter settings from the query string, clamped to sane ranges.
+function readFilters(url) {
+  const num = (k, lo, hi) => { const v = url.searchParams.get(k); if (v == null || v === '') return DEFAULT_FILTERS[k]; const n = +v; return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : DEFAULT_FILTERS[k]; };
+  const cut = num('cut', 0, 50);
+  return { minSold: Math.round(num('minSold', 0, 100000) * 10) / 10, minListed: Math.round(num('minListed', 0, 100000)), cut: cut === 15 ? 15 : 5 };
+}
+const sameFilters = (a, b) => a.minSold === b.minSold && a.minListed === b.minListed && a.cut === b.cut;
+
+// Build the full payload for a set of filters from the last fetched prices.
+function buildPayload(filters) {
+  const r = state.raw;
+  const out = compute(state.recipes, r.P, r.BP, { minSold: filters.minSold, minListed: filters.minListed, cut: filters.cut / 100 });
+  for (const id of EXTRA_IDS) if (!out.items[id] && r.names[id]) out.items[id] = r.names[id];
+  const gaps = Object.keys(out.gaps);
+  delete out.gaps;
+  return {
+    payload: {
+      source: 'live',
+      market: r.label || 'Normal Alliance EU',
+      marketSlug: MARKET,
+      generatedAt: r.generatedAt,
+      scannedAt: r.scannedAt,
+      asOf: fmtDate(r.scannedAt),
+      refreshMinutes: REFRESH_MINUTES,
+      recipesBuild: state.recipesMeta ? state.recipesMeta.build : null,
+      filters,
+      ...out
+    },
+    gaps
+  };
+}
+
+// Payload for non-default filters, computed on demand and cached until the next price refresh.
+function variantFor(filters) {
+  const key = `${filters.minSold}|${filters.minListed}|${filters.cut}`;
+  let v = state.variants.get(key);
+  if (!v) {
+    v = pack(buildPayload(filters).payload);
+    state.variants.set(key, v);
+    if (state.variants.size > 40) state.variants.delete(state.variants.keys().next().value);
+  }
+  return v;
 }
 
 async function readJSON(file) { try { return JSON.parse(await readFile(file, 'utf8')); } catch { return null; } }
@@ -72,22 +124,10 @@ async function refresh() {
     const { P, BP, names, label, scannedAt, requests } = await fetchPrices(MARKET, ids);
     const priced = Object.keys(P).length;
     if (priced < Math.max(50, ids.length * 0.2)) throw new Error(`Too few prices from AHledger (${priced} of ${ids.length})`);
-    const out = compute(state.recipes, P, BP);
-    for (const id of EXTRA_IDS) if (!out.items[id] && names[id]) out.items[id] = names[id];
     const now = new Date().toISOString();
-    const gaps = Object.keys(out.gaps);
-    delete out.gaps;
-    setPayload({
-      source: 'live',
-      market: label || 'Normal Alliance EU',
-      marketSlug: MARKET,
-      generatedAt: now,
-      scannedAt: scannedAt || now,
-      asOf: fmtDate(scannedAt || now),
-      refreshMinutes: REFRESH_MINUTES,
-      recipesBuild: state.recipesMeta ? state.recipesMeta.build : null,
-      ...out
-    });
+    state.raw = { P, BP, names, label, scannedAt: scannedAt || now, generatedAt: now };
+    const { payload, gaps } = buildPayload(DEFAULT_FILTERS);
+    setPayload(payload);
     state.lastOk = now;
     state.lastError = null;
     await writeJSON(path.join(CACHE_DIR, 'latest.json'), state.payload);
@@ -129,7 +169,12 @@ const server = http.createServer((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405, { allow: 'GET, HEAD' }); return res.end(); }
   if (url.pathname === '/api/data') {
     if (!state.body) return sendJSON(req, res, 503, { error: 'Data is not ready yet' });
-    return send(req, res, 200, { body: state.body, gz: state.gz, type: TYPES['.json'], etag: state.etag, extra: { 'access-control-allow-origin': '*' } });
+    const filters = readFilters(url);
+    let v = { body: state.body, gz: state.gz, etag: state.etag };
+    if (state.raw && state.recipes && !sameFilters(filters, DEFAULT_FILTERS)) {
+      try { v = variantFor(filters); } catch (e) { log('filter compute failed:', e.message); }
+    }
+    return send(req, res, 200, { body: v.body, gz: v.gz, type: TYPES['.json'], etag: v.etag, extra: { 'access-control-allow-origin': '*' } });
   }
   if (url.pathname === '/api/status') {
     const p = state.payload || {};

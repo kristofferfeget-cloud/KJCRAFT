@@ -29,14 +29,38 @@ test('builds recipes, prices and a gap-free route', () => {
   assert.equal(recipes.tailoring[1].src, 'V');
   assert.deepEqual(neededIds(recipes).filter((i) => i >= 900 && i < 1000), [900, 901, 950]);
   const P = { 2589: { price: 40, sales: 1000 }, 4306: { price: 200, sales: 1000 }, 900: { price: 150, sales: 50 }, 901: { price: 900, sales: 2 } };
-  const out = compute(recipes, P, {});
+  const out = compute(recipes, P, {}, { minListed: 0 });
   const best = out.profs.tailoring.best;
   assert.equal(best[0][0], 1);
   assert.equal(best[best.length - 1][1], 300);
   for (let i = 1; i < best.length; i++) assert.equal(best[i][0], best[i - 1][1]);
-  assert.deepEqual(out.prices[2589], [40, 'AH']);
+  assert.deepEqual(out.prices[2589].slice(0, 2), [40, 'AH']);
   assert.equal(out.items[901][0], 'High Robe');
   // High Robe sells < 3/day, so it is valued at vendor price
   const robe = best.find((s) => s[2] === 'High Robe');
   assert.equal(robe[14], 'vendor');
+});
+
+test('filters ignore thin AH items and pick the better of AH and vendor', () => {
+  const recipes = buildRecipes(seemeta, { src: { V: [2] }, learn: {} });
+  const P = {
+    2589: { price: 40, sales: 1000, listed: 500 },
+    4306: { price: 200, sales: 1000, listed: 2 },   // thin: only 2 listed
+    900: { price: 150, sales: 50, listed: 40 },
+    901: { price: 9000, sales: 50, listed: 30 }
+  };
+  const out = compute(recipes, P, {}, { minSold: 3, minListed: 5, cut: 0.05 });
+  const robe = out.profs.tailoring.best.find((s) => s[2] === 'High Robe');
+  assert.equal(robe[18], 1, 'High Robe only works with thin Silk Cloth, so it is flagged');
+  assert.equal(robe[13], Math.round(9000 * 0.95), 'AH sale after 5% cut');
+  const out15 = compute(recipes, P, {}, { minSold: 3, minListed: 0, cut: 0.15 });
+  const robe15 = out15.profs.tailoring.best.find((s) => s[2] === 'High Robe');
+  assert.equal(robe15[18], 0);
+  assert.equal(robe15[13], Math.round(9000 * 0.85), 'neutral AH cut');
+  // vendor pays more than a cheap AH price
+  const cheap = compute(recipes, { ...P, 900: { price: 4, sales: 50, listed: 40 } }, {}, {});
+  const shirt = cheap.profs.tailoring.best.find((s) => s[2] === 'Low Shirt');
+  assert.equal(shirt[14], 'vendor');
+  assert.equal(shirt[13], 5);
+  assert.ok(out.ignored >= 1);
 });

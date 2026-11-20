@@ -7,6 +7,7 @@ A website that shows the cheapest way from 1 to 300 in every profession in **WoW
 - Step-by-step routes for Alchemy, Blacksmithing, Enchanting, Engineering, Leatherworking, Tailoring, Cooking and First Aid – "Best route" and "Trainer only".
 - Enter your skill to see what to craft now, how many crafts are left, a shopping list to 300 and gold tips.
 - Separate pages for Herbalism, Mining, Skinning and Fishing.
+- Filters for realistic gold costs: ignore AH items that sell fewer than X per day or have fewer than Y listed, choose a 5% (faction) or 15% (neutral) AH cut. Sales always use the better of AH price (after the cut) and vendor price.
 
 ## How it works
 
@@ -46,6 +47,6 @@ Runs on Railway (project `kjcraft`, service `web`, region EU West). Every push t
 ## Endpoints
 
 - `/` – the website
-- `/api/data` – routes and prices as JSON
+- `/api/data` – routes and prices as JSON. Optional filters: `?minSold=3&minListed=5&cut=5` (cut is 5 or 15). Non-default filters are computed on demand and cached until the next price refresh.
 - `/api/status` – when prices were last fetched, and any errors
 - `/health` – health check

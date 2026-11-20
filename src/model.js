@@ -21,7 +21,9 @@ export const EXTRA_IDS = [
   13893, 13759, 4655, 5504, 5503, 5500, 7971
 ];
 
-export const DEFAULT_OPTS = { minP: 0.2, pen: 2000, sticky: 700, risk: 0.12, maxPattern: 60000, goldTop: 15, goldMinNet: 100, goldMinSold: 5 };
+// minSold / minListed: items that sell less than minSold per day or have fewer than minListed on the AH are ignored on the AH
+// (not bought there, and not counted on to sell there). cut: the AH's cut of a sale.
+export const DEFAULT_OPTS = { minP: 0.2, pen: 2000, sticky: 700, risk: 0.12, maxPattern: 60000, goldTop: 15, goldMinNet: 100, goldMinSold: 5, minSold: 3, minListed: 5, cut: 0.05 };
 
 const round1 = (x) => Math.round(x * 10) / 10;
 
@@ -156,7 +158,10 @@ function route(recs, filters, opt) {
  */
 export function compute(recipes, P, BP, options = {}) {
   const opt = { ...DEFAULT_OPTS, ...options };
-  const out = { profs: {}, items: {}, prices: {}, gaps: {} };
+  const out = { profs: {}, items: {}, prices: {}, gaps: {}, ignored: 0 };
+  // An item counts on the AH only if it trades and is listed in enough volume.
+  const liquid = (id) => { const p = P[id]; return !!p && p.price != null && (p.sales ?? 0) >= opt.minSold && (p.listed ?? 0) >= opt.minListed; };
+  for (const id of Object.keys(P)) if (P[id].price != null && !liquid(id)) out.ignored++;
   const itemInfo = new Map();
   const VS = {};
   for (const recs of Object.values(recipes)) for (const r of recs) {
@@ -171,12 +176,13 @@ export function compute(recipes, P, BP, options = {}) {
     const recs = src.map((r) => ({ ...r }));
     const prodBy = new Map();
     for (const r of recs) if (r.res) { const a = prodBy.get(r.res.id) || []; a.push(r); prodBy.set(r.res.id, a); }
+    // strict: thin AH items are ignored (the filters). Non-strict prices are only a last resort so a route never has holes.
     const memo = new Map();
-    const unit = (id, d = 0) => {
-      const key = id + '|' + d;
+    const unitOf = (strict) => function unit(id, d = 0) {
+      const key = id + '|' + d + '|' + strict;
       if (memo.has(key)) return memo.get(key);
       let best = null, how = null;
-      const ah = P[id] && P[id].price;
+      const ah = (strict ? liquid(id) : (P[id] && P[id].price != null)) ? P[id].price : null;
       if (ah != null) { best = ah; how = 'AH'; }
       const vb = VBUY[id] != null ? VBUY[id] : (VSET.has(id) && VS[id] ? VS[id] * 4 : null);
       if (vb != null && (best == null || vb <= best)) { best = vb; how = 'V'; }
@@ -192,40 +198,55 @@ export function compute(recipes, P, BP, options = {}) {
       memo.set(key, res);
       return res;
     };
+    const unit = unitOf(true), unitRaw = unitOf(false);
     for (const r of recs) {
       let c = 0;
       for (const g of r.reag) { const u = unit(g.id); if (!u) { c = null; break; } c += u.c * g.n; }
       r.mats = c;
+      r.thin = false;
+      if (c == null) {
+        let c2 = 0;
+        for (const g of r.reag) { const u = unitRaw(g.id); if (!u) { c2 = null; break; } c2 += u.c * g.n; }
+        if (c2 != null) { r.mats = c2; r.thin = true; }
+      }
       if (!r.res) { r.sale = 0; r.how = 'none'; }
       else {
         const p = P[r.res.id];
         const vend = (r.res.vs || 0) * r.res.n;
-        if (p && p.price != null && (p.sales || 0) >= 3) {
-          const a = p.price * 0.95 * r.res.n;
+        r.ahVal = p && p.price != null ? p.price * (1 - opt.cut) * r.res.n : null;
+        r.liquid = liquid(r.res.id);
+        if (r.liquid) {
+          const a = r.ahVal;
           if (a > vend) { r.sale = a; r.how = 'AH'; } else { r.sale = vend; r.how = 'vendor'; }
         } else { r.sale = vend; r.how = vend > 0 ? 'vendor' : 'none'; }
       }
       r.sold = r.res && P[r.res.id] ? (P[r.res.id].sales || 0) : 0;
       r.book = r.bookId ? { id: r.bookId, price: BP[r.bookId] ? BP[r.bookId].med : null, qty: BP[r.bookId] ? (BP[r.bookId].qty || 0) : 0 } : null;
     }
-    const allowAny = (r) => !isCD(r) && !isSpec(r) && r.mats != null;
+    const allowLast = (r) => !isCD(r) && !isSpec(r) && r.mats != null;
+    const allowAny = (r) => allowLast(r) && !r.thin;
     const allowBest = (r) => allowAny(r) && (r.src === 'T' || r.src === 'V' || (patCost(r) != null && patCost(r) <= opt.maxPattern));
     const allowTrainer = (r) => allowAny(r) && r.src === 'T';
 
-    const usePrice = (id) => { const u = unit(id); if (u) { const prev = out.prices[id]; const c = Math.round(u.c); if (!prev || c < prev[0]) out.prices[id] = [c, u.how]; } useItem(id); };
+    const usePrice = (id) => {
+      const u = unit(id) || unitRaw(id);
+      if (u) { const prev = out.prices[id]; const c = Math.round(u.c); if (!prev || c < prev[0]) out.prices[id] = [c, u.how, P[id] ? (P[id].listed ?? null) : null, P[id] ? (P[id].sales ?? null) : null]; }
+      useItem(id);
+    };
     const stepOf = (seg) => {
       const r = seg.r;
       r.reag.forEach((g) => usePrice(g.id));
       if (r.res) useItem(r.res.id);
       return [seg.from, seg.to, r.name, r.res ? r.res.id : 0, r.res ? r.res.n : 1, r.learn, r.y, r.g, r.gr, r.src,
         patCost(r) || 0, round1(crafts(r, seg.from, seg.to)), Math.round(r.mats), Math.round(r.sale), r.how,
-        r.res ? round1(r.sold) : null, r.res ? (r.res.vs || 0) * r.res.n : 0, r.reag.map((g) => [g.id, g.n]), 0];
+        r.res ? round1(r.sold) : null, r.res ? (r.res.vs || 0) * r.res.n : 0, r.reag.map((g) => [g.id, g.n]), r.thin ? 1 : 0,
+        r.res && r.ahVal != null ? Math.round(r.ahVal) : null, r.res && P[r.res.id] ? (P[r.res.id].listed ?? null) : null, r.res ? (r.liquid ? 1 : 0) : 0];
     };
-    const best = route(recs, [allowBest, allowAny], opt);
-    const trainer = route(recs, [allowTrainer, allowBest, allowAny], opt);
+    const best = route(recs, [allowBest, allowAny, allowLast], opt);
+    const trainer = route(recs, [allowTrainer, allowBest, allowAny, allowLast], opt);
     const seenRes = new Set();
     const gold = recs
-      .filter((r) => r.how === 'AH' && r.mats != null && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= opt.goldMinSold)
+      .filter((r) => r.how === 'AH' && r.mats != null && !r.thin && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= Math.max(opt.goldMinSold, opt.minSold))
       .map((r) => ({ r, score: (r.sale - r.mats) * Math.min(r.sold * 0.25, 20) }))
       .sort((a, b) => b.score - a.score)
       .filter(({ r }) => (seenRes.has(r.res.id) ? false : (seenRes.add(r.res.id), true)))
@@ -241,7 +262,7 @@ export function compute(recipes, P, BP, options = {}) {
   }
   // prices + names for the gathering pages
   for (const id of EXTRA_IDS) {
-    if (P[id] && P[id].price != null && !out.prices[id]) out.prices[id] = [Math.round(P[id].price), 'AH'];
+    if (P[id] && P[id].price != null && !out.prices[id]) out.prices[id] = [Math.round(P[id].price), 'AH', P[id].listed ?? null, P[id].sales ?? null];
     if (itemInfo.has(id)) out.items[id] = itemInfo.get(id);
   }
   return out;
