@@ -7,7 +7,7 @@ A website that shows the cheapest way from 1 to 300 in every profession in **WoW
 - Step-by-step routes for Alchemy, Blacksmithing, Enchanting, Engineering, Leatherworking, Tailoring, Cooking and First Aid – "Best route" and "Trainer only".
 - Enter your skill to see what to craft now, how many crafts are left, a shopping list to 300 and gold tips.
 - Separate pages for Herbalism, Mining, Skinning and Fishing.
-- **Your gold:** enter how much gold you have and the site picks the best route that never needs more – the server builds a family of routes with a growing penalty on gold tied up in mats and patterns (`riskLevels`, `alts`, `fam` in `/api/data`). The addon does the same with the gold you carry (`GetMoney()`), or `/cpath gold 150`.
+- **Your gold:** enter how much gold you have and the site picks the best route that never needs more – the server builds a family of routes with a growing penalty on gold tied up in mats and patterns (`riskLevels`, `alts`, `fam` in `/api/data`). The addon does the same with the gold you carry (`GetMoney()`), or `/cpath gold 150`. "Gold needed" assumes you buy mats for about 5 crafts at a time and that what you craft is worth at least its vendor price right away; tick "Also count AH sales as I go" (`/cpath sales` in the addon) to count AH sales instead.
 - Filters for realistic gold costs: ignore AH items that sell fewer than X per day or have fewer than Y listed, choose a 5% (faction) or 15% (neutral) AH cut. Sales always use the better of AH price (after the cut) and vendor price.
 
 ## WoW addon (CraftPath)

@@ -481,7 +481,7 @@ function UI:BuildProfPage()
     b.mode = (b.mode == "off") and "auto" or "off"
     UI:Refresh(true)
   end)
-  self.budgetBtn.tip = { "Plan for your gold", "Picks the best route that never needs more gold than you have. Click: off / the gold you carry. Type /cpath gold 150 for a fixed amount, /cpath sales to stop counting on selling as you go." }
+  self.budgetBtn.tip = { "Plan for your gold", "Picks the best route that never needs more gold than you have. Click: off / the gold you carry. Type /cpath gold 150 for a fixed amount. Crafted items count at vendor price; /cpath sales also counts AH sales." }
   self.varBest:SetScript("OnClick", function() UI:SetVariant("best") end)
   self.varTrainer:SetScript("OnClick", function() UI:SetVariant("trainer") end)
 

@@ -500,7 +500,7 @@ local DEFAULTS = {
   tab = "tailoring",
   mode = "route",
   variant = {},
-  budget = { mode = "off", gold = 0, sales = true },
+  budget = { mode = "off", gold = 0, ahSales = false },
   livePrices = true,
   mini = { shown = true, point = { "TOP", "TOP", 0, -140 }, prof = "auto" },
   minimap = { hide = false, angle = 200 },
@@ -538,8 +538,9 @@ function ns.Budget()
 end
 
 -- what the rest of a route costs from this skill: peak gold needed and net result
--- (buy mats for ~5 crafts at a time and - if sales is true - sell them before buying more; AH sales capped at a day's volume)
-function ns.RestCalc(route, skill, sales)
+-- (buy mats for ~5 crafts at a time; crafted items count at vendor price right away, or with ahSales at their AH value,
+-- capped at a day's volume like the rest of the addon)
+function ns.RestCalc(route, skill, ahSales)
   skill = skill or 1
   local learned, c, peak, net = {}, 0, 0, 0
   for _, st in ipairs(route) do if st.from < skill then learned[st.name] = true end end
@@ -565,17 +566,17 @@ function ns.RestCalc(route, skill, sales)
         c = c + b * (st.mats or 0) + (first and pat or 0)
         first = false
         if c > peak then peak = c end
-        if sales then
-          local v = 0
-          if st.how == "AH" then
-            local a2 = max(0, min(b, cap - soldAH))
-            v = a2 * (st.sale or 0) + (b - a2) * (st.vend or 0)
-            soldAH = soldAH + a2
-          elseif st.how == "vendor" then
-            v = b * (st.sale or 0)
-          end
-          c = c - v
+        local v = 0
+        if st.how == "none" then
+          v = 0
+        elseif ahSales and st.how == "AH" then
+          local a2 = max(0, min(b, cap - soldAH))
+          v = a2 * (st.sale or 0) + (b - a2) * (st.vend or 0)
+          soldAH = soldAH + a2
+        else
+          v = b * (st.vend or 0)
         end
+        c = c - v
         left = left - b
       end
       net = net + val - mats - pat
@@ -592,7 +593,7 @@ function ns.Route(key)
   local budget = ns.Budget()
   if not budget or not (p.fam and p.fam[v]) then return base, v, nil end
   local skill = ns.GetSkill(key) or 1
-  local sales = ns.db.budget.sales ~= false
+  local sales = ns.db.budget.ahSales == true
   local ck = table.concat({ v, skill, budget, tostring(sales) }, "|")
   if p.bcache and p.bcache.key == ck then return p.bcache.route, v, p.bcache.info end
   local seen, best, bestPeak, bestNet, minR, minPeak, minNet = {}, nil, nil, nil, nil, nil, nil
@@ -714,7 +715,7 @@ local HELP = {
   "/cpath live - turn live Auctionator prices on or off",
   "/cpath data - how old the price data is and how to update it",
   "/cpath gold auto, /cpath gold 150 or /cpath gold off - plan the route for your gold (auto = what you carry)",
-  "/cpath sales - count on selling as you go (on/off) when planning for your gold",
+  "/cpath sales - also count AH sales as you go when planning for your gold (on/off)",
   "/cpath web - link to this route on the website",
   "/cpath scale 1.1 - change the size (0.7 to 1.5)",
   "/cpath reset - move the windows back to the middle",
@@ -781,8 +782,8 @@ local function Slash(input)
     Print(b.mode == "off" and "Budget off - showing the normal route." or (b.mode == "auto" and "Planning the route for the gold you carry." or ("Planning the route for " .. ns.Money(b.gold) .. ".")))
     UI:Refresh(true)
   elseif cmd == "sales" then
-    ns.db.budget.sales = not (ns.db.budget.sales ~= false)
-    Print(ns.db.budget.sales and "Budget counts on selling as you go." or "Budget does not count on selling - all mats are paid up front.")
+    ns.db.budget.ahSales = not ns.db.budget.ahSales
+    Print(ns.db.budget.ahSales and "Gold planning counts AH sales as you go." or "Gold planning counts crafted items at vendor price (the safe way).")
     UI:Refresh()
   elseif cmd == "reset" then
     ns.db.point = { "CENTER", "CENTER", 0, 40 }
