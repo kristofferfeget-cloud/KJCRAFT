@@ -23,7 +23,7 @@ export const EXTRA_IDS = [
 
 // minSold / minListed: items that sell less than minSold per day or have fewer than minListed on the AH are ignored on the AH
 // (not bought there, and not counted on to sell there). cut: the AH's cut of a sale.
-export const DEFAULT_OPTS = { minP: 0.2, pen: 2000, sticky: 700, risk: 0.12, maxPattern: 60000, goldTop: 15, goldMinNet: 100, goldMinSold: 5, minSold: 3, minListed: 5, cut: 0.05 };
+export const DEFAULT_OPTS = { minP: 0.2, pen: 2000, sticky: 700, risk: 0.12, src: 'TVDQ', maxPattern: 60000, goldTop: 15, goldMinNet: 100, goldMinSold: 5, minSold: 3, minListed: 5, cut: 0.05 };
 
 // Capital-penalty levels for the budget family: from "most gold" (the default route) to "least gold tied up".
 // The site and the addon pick the best of these routes that fits the player's gold.
@@ -83,6 +83,14 @@ export function neededIds(recipes) {
 
 const isCD = (r) => (/^Transmute:/.test(r.name) && r.name !== 'Transmute: Elemental Fire') || r.name === 'Mooncloth' || /^Refined Salt/.test(r.name);
 const isSpec = (r) => r.prof === 'engineering' && (/^Gnomish /.test(r.name) || /^Goblin /.test(r.name) || SPEC.includes(r.name));
+// Recipe-source groups for the "recipe sources" filter: AH patterns and unknown sources count as drops.
+const SRC_GROUP = { T: 'T', V: 'V', D: 'D', P: 'D', U: 'D', Q: 'Q', R: 'R' };
+export const SRC_LETTERS = 'TVDQR';
+/** Normalise a sources string ("vdq" -> "TVDQ"); the trainer is always allowed. */
+export function normSrc(s) {
+  const set = new Set(String(s ?? '').toUpperCase().split(''));
+  return [...SRC_LETTERS].filter((c) => c === 'T' || set.has(c)).join('');
+}
 const patCost = (r) => (['P', 'D', 'Q'].includes(r.src) && r.book && r.book.price != null && r.book.qty >= 1) ? r.book.price : null;
 
 /** Chance of a skill-up at skill s. */
@@ -164,7 +172,7 @@ function route(recs, filters, opt) {
  */
 export function compute(recipes, P, BP, options = {}) {
   const opt = { ...DEFAULT_OPTS, riskLevels: RISK_LEVELS, ...options };
-  const out = { profs: {}, items: {}, prices: {}, gaps: {}, ignored: 0, riskLevels: opt.riskLevels };
+  const out = { profs: {}, items: {}, prices: {}, crafts: {}, gaps: {}, ignored: 0, riskLevels: opt.riskLevels };
   // An item counts on the AH only if it trades and is listed in enough volume.
   const liquid = (id) => { const p = P[id]; return !!p && p.price != null && (p.sales ?? 0) >= opt.minSold && (p.listed ?? 0) >= opt.minListed; };
   for (const id of Object.keys(P)) if (P[id].price != null && !liquid(id)) out.ignored++;
@@ -187,7 +195,7 @@ export function compute(recipes, P, BP, options = {}) {
     const unitOf = (strict) => function unit(id, d = 0) {
       const key = id + '|' + d + '|' + strict;
       if (memo.has(key)) return memo.get(key);
-      let best = null, how = null;
+      let best = null, how = null, via = null;
       const ah = (strict ? liquid(id) : (P[id] && P[id].price != null)) ? P[id].price : null;
       if (ah != null) { best = ah; how = 'AH'; }
       const vb = VBUY[id] != null ? VBUY[id] : (VSET.has(id) && VS[id] ? VS[id] * 4 : null);
@@ -197,10 +205,10 @@ export function compute(recipes, P, BP, options = {}) {
           if (isCD(p)) continue;
           let c = 0, ok = true;
           for (const g of p.reag) { const u = unit(g.id, d + 1); if (!u) { ok = false; break; } c += u.c * g.n; }
-          if (ok) { c /= (p.res.n || 1); if (best == null || c < best) { best = c; how = 'craft'; } }
+          if (ok) { c /= (p.res.n || 1); if (best == null || c < best) { best = c; how = 'craft'; via = p; } }
         }
       }
-      const res = best == null ? null : { c: best, how };
+      const res = best == null ? null : { c: best, how, via: how === 'craft' ? via : null };
       memo.set(key, res);
       return res;
     };
@@ -229,14 +237,28 @@ export function compute(recipes, P, BP, options = {}) {
       r.sold = r.res && P[r.res.id] ? (P[r.res.id].sales || 0) : 0;
       r.book = r.bookId ? { id: r.bookId, price: BP[r.bookId] ? BP[r.bookId].med : null, qty: BP[r.bookId] ? (BP[r.bookId].qty || 0) : 0 } : null;
     }
+    // recipe sources the player wants to use (trainer always); others only fill a hole nothing else covers
+    const okSrc = new Set(normSrc(opt.src));
+    const srcOK = (r) => okSrc.has(SRC_GROUP[r.src] || 'D');
     const allowLast = (r) => !isCD(r) && !isSpec(r) && r.mats != null;
-    const allowAny = (r) => allowLast(r) && !r.thin;
-    const allowBest = (r) => allowAny(r) && (r.src === 'T' || r.src === 'V' || (patCost(r) != null && patCost(r) <= opt.maxPattern));
+    const allowLastOK = (r) => allowLast(r) && srcOK(r);
+    const allowAny = (r) => allowLastOK(r) && !r.thin;
+    const allowBest = (r) => allowAny(r) && (r.src === 'T' || r.src === 'V' || r.src === 'R' || (patCost(r) != null && patCost(r) <= opt.maxPattern));
     const allowTrainer = (r) => allowAny(r) && r.src === 'T';
 
-    const usePrice = (id) => {
+    const usePrice = (id, d = 0) => {
       const u = unit(id) || unitRaw(id);
-      if (u) { const prev = out.prices[id]; const c = Math.round(u.c); if (!prev || c < prev[0]) out.prices[id] = [c, u.how, P[id] ? (P[id].listed ?? null) : null, P[id] ? (P[id].sales ?? null) : null]; }
+      if (u) {
+        const prev = out.prices[id]; const c = Math.round(u.c);
+        if (!prev || c < prev[0]) {
+          out.prices[id] = [c, u.how, P[id] ? (P[id].listed ?? null) : null, P[id] ? (P[id].sales ?? null) : null];
+          // mats that are cheaper to make yourself: what they are made of, so the site can say what to buy
+          if (u.how === 'craft' && u.via) {
+            out.crafts[id] = [u.via.res.n || 1, u.via.reag.map((g) => [g.id, g.n]), u.via.name];
+            if (d < 2) u.via.reag.forEach((g) => usePrice(g.id, d + 1));
+          } else delete out.crafts[id];
+        }
+      }
       useItem(id);
     };
     const stepOf = (seg) => {
@@ -248,12 +270,12 @@ export function compute(recipes, P, BP, options = {}) {
         r.res ? round1(r.sold) : null, r.res ? (r.res.vs || 0) * r.res.n : 0, r.reag.map((g) => [g.id, g.n]), r.thin ? 1 : 0,
         r.res && r.ahVal != null ? Math.round(r.ahVal) : null, r.res && P[r.res.id] ? (P[r.res.id].listed ?? null) : null, r.res ? (r.liquid ? 1 : 0) : 0];
     };
-    const FILTERS = { best: [allowBest, allowAny, allowLast], trainer: [allowTrainer, allowBest, allowAny, allowLast] };
+    const FILTERS = { best: [allowBest, allowAny, allowLastOK, allowLast], trainer: [allowTrainer, allowBest, allowAny, allowLastOK, allowLast] };
     const best = route(recs, FILTERS.best, opt);
     const trainer = route(recs, FILTERS.trainer, opt);
     const seenRes = new Set();
     const gold = recs
-      .filter((r) => r.how === 'AH' && r.mats != null && !r.thin && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= Math.max(opt.goldMinSold, opt.minSold))
+      .filter((r) => srcOK(r) && r.how === 'AH' && r.mats != null && !r.thin && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= Math.max(opt.goldMinSold, opt.minSold))
       .map((r) => ({ r, score: (r.sale - r.mats) * Math.min(r.sold * 0.25, 20) }))
       .sort((a, b) => b.score - a.score)
       .filter(({ r }) => (seenRes.has(r.res.id) ? false : (seenRes.add(r.res.id), true)))

@@ -64,3 +64,39 @@ test('filters ignore thin AH items and pick the better of AH and vendor', () => 
   assert.equal(shirt[13], 5);
   assert.ok(out.ignored >= 1);
 });
+
+test('recipe-source filter keeps disallowed sources out unless nothing else covers a level', () => {
+  // a cheap vendor recipe competes with the trainer recipe at 150+
+  const sm = JSON.parse(JSON.stringify(seemeta));
+  sm.tailoring.recipes.push({ name: 'Cheap Drop Cloak', spellId: 3, skill: { required: 150, trainerRequired: 150, yellow: 290, green: 300, grey: 320 },
+    source: { method: 'book', books: [{ id: 951, reputation: null }] },
+    reagents: [reag(2589, 1, 'Linen Cloth')], createdItem: { id: 902, name: 'Cheap Drop Cloak', count: 1, quality: 2, vendorSellPrice: 200 } });
+  const recipes = buildRecipes(sm, { src: { V: [2], D: [3] }, learn: {} });
+  const P = { 2589: { price: 40, sales: 1000, listed: 500 }, 4306: { price: 200, sales: 1000, listed: 500 } };
+  const BP = { 951: { med: 1000, qty: 3 } };
+  const names = (o) => new Set(o.profs.tailoring.best.map((s) => s[2]));
+  assert.ok(names(compute(recipes, P, BP, {})).has('Cheap Drop Cloak'), 'drops allowed by default');
+  const noDrops = compute(recipes, P, BP, { src: 'TV' });
+  assert.ok(!names(noDrops).has('Cheap Drop Cloak'), 'drops filtered out');
+  assert.ok(names(noDrops).has('High Robe'), 'vendor recipe still used');
+  // with neither vendor nor drops, 200-300 has only those two recipes: the route still has no holes
+  const trainerOnly = compute(recipes, P, BP, { src: 'T' });
+  const best = trainerOnly.profs.tailoring.best;
+  assert.equal(best[best.length - 1][1], 300);
+  // the pattern price cap applies to drops
+  assert.ok(!names(compute(recipes, P, BP, { maxPattern: 500 })).has('Cheap Drop Cloak'), 'pattern above the cap');
+});
+
+test('mats that are cheaper to craft carry their recipe', () => {
+  const sm = JSON.parse(JSON.stringify(seemeta));
+  // Bolt (id 950x) made from 4 Linen; High Robe needs bolts instead of silk
+  sm.tailoring.recipes.push({ name: 'Bolt', spellId: 4, skill: { required: 1, trainerRequired: 1, yellow: 25, green: 37, grey: 50 }, source: { method: 'automatic', books: [] },
+    reagents: [reag(2589, 4, 'Linen Cloth')], createdItem: { id: 2996, name: 'Bolt', count: 1, quality: 1, vendorSellPrice: 10 } });
+  sm.tailoring.recipes[1].reagents = [reag(2996, 3, 'Bolt')];
+  const recipes = buildRecipes(sm, { src: { V: [2] }, learn: {} });
+  const P = { 2589: { price: 40, sales: 1000, listed: 500 }, 2996: { price: 500, sales: 1000, listed: 500 } };
+  const out = compute(recipes, P, {}, {});
+  assert.deepEqual(out.prices[2996].slice(0, 2), [160, 'craft']);
+  assert.deepEqual(out.crafts[2996].slice(0, 2), [1, [[2589, 4]]]);
+  assert.ok(out.prices[2589]);
+});
