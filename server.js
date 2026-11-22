@@ -16,7 +16,7 @@ const REFRESH_MINUTES = Math.max(10, +process.env.REFRESH_MINUTES || 30);
 const RECIPES_REFRESH_HOURS = Math.max(1, +process.env.RECIPES_REFRESH_HOURS || 24);
 const CACHE_DIR = process.env.CACHE_DIR || path.join(ROOT, '.cache');
 const OFFLINE = process.env.OFFLINE === '1'; // serve the bundled snapshot only (for local testing)
-const DEFAULT_FILTERS = { minSold: 3, minListed: 5, cut: 5, src: 'TVDQ', pat: 6 }; // cut in percent, pat = max pattern price in gold
+const DEFAULT_FILTERS = { minSold: 3, minListed: 5, cut: 5, src: 'TVDQ', pat: 6, ex: '' }; // cut in percent, pat = max pattern price in gold
 
 const overrides = JSON.parse(await readFile(path.join(ROOT, 'data', 'overrides.json'), 'utf8'));
 
@@ -51,15 +51,20 @@ function readFilters(url) {
   const cut = num('cut', 0, 50);
   const src = url.searchParams.has('src') ? normSrc(url.searchParams.get('src')) : DEFAULT_FILTERS.src;
   return { minSold: Math.round(num('minSold', 0, 100000) * 10) / 10, minListed: Math.round(num('minListed', 0, 100000)), cut: cut === 15 ? 15 : 5,
-    src, pat: Math.round(num('pat', 0, 10000) * 100) / 100 };
+    src, pat: Math.round(num('pat', 0, 10000) * 100) / 100, ex: normEx(url.searchParams.get('ex')) };
 }
-const sameFilters = (a, b) => a.minSold === b.minSold && a.minListed === b.minListed && a.cut === b.cut && a.src === b.src && a.pat === b.pat;
-const filterKey = (f) => `${f.minSold}|${f.minListed}|${f.cut}|${f.src}|${f.pat}`;
+// recipes the player can't make: spell ids, sorted, at most 60
+function normEx(s) {
+  const ids = [...new Set(String(s || '').split(/[^0-9]+/).filter(Boolean).map(Number).filter((n) => n > 0 && n < 1e7))].sort((a, b) => a - b);
+  return ids.slice(0, 60).join(',');
+}
+const sameFilters = (a, b) => a.minSold === b.minSold && a.minListed === b.minListed && a.cut === b.cut && a.src === b.src && a.pat === b.pat && a.ex === b.ex;
+const filterKey = (f) => `${f.minSold}|${f.minListed}|${f.cut}|${f.src}|${f.pat}|${f.ex}`;
 
 // Build the full payload for a set of filters from the last fetched prices.
 function buildPayload(filters) {
   const r = state.raw;
-  const out = compute(state.recipes, r.P, r.BP, { minSold: filters.minSold, minListed: filters.minListed, cut: filters.cut / 100, src: filters.src, maxPattern: Math.round(filters.pat * 10000) });
+  const out = compute(state.recipes, r.P, r.BP, { minSold: filters.minSold, minListed: filters.minListed, cut: filters.cut / 100, src: filters.src, maxPattern: Math.round(filters.pat * 10000), exclude: filters.ex ? filters.ex.split(',').map(Number) : [] });
   for (const id of EXTRA_IDS) if (!out.items[id] && r.names[id]) out.items[id] = r.names[id];
   const gaps = Object.keys(out.gaps);
   delete out.gaps;
@@ -168,7 +173,7 @@ function baseUrl(req) {
   return `${proto}://${req.headers['x-forwarded-host'] || req.headers.host}`;
 }
 function filterQuery(f) {
-  return sameFilters(f, DEFAULT_FILTERS) ? '' : `?minSold=${f.minSold}&minListed=${f.minListed}&cut=${f.cut}&src=${f.src}&pat=${f.pat}`;
+  return sameFilters(f, DEFAULT_FILTERS) ? '' : `?minSold=${f.minSold}&minListed=${f.minListed}&cut=${f.cut}&src=${f.src}&pat=${f.pat}${f.ex ? '&ex=' + f.ex : ''}`;
 }
 // The route payload for a request's filters (default payload when filters can't be applied yet).
 function payloadFor(filters) {

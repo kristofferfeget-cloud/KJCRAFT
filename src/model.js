@@ -172,6 +172,7 @@ function route(recs, filters, opt) {
  */
 export function compute(recipes, P, BP, options = {}) {
   const opt = { ...DEFAULT_OPTS, riskLevels: RISK_LEVELS, ...options };
+  const exclude = new Set((opt.exclude || []).map(Number));
   const out = { profs: {}, items: {}, prices: {}, crafts: {}, gaps: {}, ignored: 0, riskLevels: opt.riskLevels };
   // An item counts on the AH only if it trades and is listed in enough volume.
   const liquid = (id) => { const p = P[id]; return !!p && p.price != null && (p.sales ?? 0) >= opt.minSold && (p.listed ?? 0) >= opt.minListed; };
@@ -240,7 +241,8 @@ export function compute(recipes, P, BP, options = {}) {
     // recipe sources the player wants to use (trainer always); others only fill a hole nothing else covers
     const okSrc = new Set(normSrc(opt.src));
     const srcOK = (r) => okSrc.has(SRC_GROUP[r.src] || 'D');
-    const allowLast = (r) => !isCD(r) && !isSpec(r) && r.mats != null;
+    // recipes the player said they can't make: never used, not even to fill a hole
+    const allowLast = (r) => !exclude.has(r.spell) && !isCD(r) && !isSpec(r) && r.mats != null;
     const allowLastOK = (r) => allowLast(r) && srcOK(r);
     const allowAny = (r) => allowLastOK(r) && !r.thin;
     const allowBest = (r) => allowAny(r) && (r.src === 'T' || r.src === 'V' || r.src === 'R' || (patCost(r) != null && patCost(r) <= opt.maxPattern));
@@ -261,21 +263,53 @@ export function compute(recipes, P, BP, options = {}) {
       }
       useItem(id);
     };
-    const stepOf = (seg) => {
+    // other recipes for the same skill range, best first (same costs as the route: mats, sales, patterns)
+    const altsFor = (seg, filters) => {
+      const span = seg.to - seg.from, rows = [];
+      for (const r of recs) {
+        if (r.spell === seg.r.spell) continue;
+        const tier = filters.findIndex((fn) => fn(r));
+        if (tier < 0 || pp(r, seg.from) < opt.minP) continue;
+        let n = 0, val = 0, to = seg.from;
+        const yld = (r.res && r.res.n) || 1, vend = ((r.res && r.res.vs) || 0) * yld;
+        for (let s = seg.from; s < seg.to; s++) {
+          const p = pp(r, s);
+          if (p < opt.minP) break;
+          n += 1 / p; to = s + 1;
+        }
+        const cap = r.how === 'AH' ? Math.max(2, r.sold || 0) : 0, ahN = Math.min(n, cap);
+        val = ahN * r.sale + (n - ahN) * (r.how === 'AH' ? vend : r.sale);
+        const pc = patCost(r) || 0, pts = to - seg.from;
+        const net = val - n * r.mats - pc;
+        // rank: allowed sources first, then cost per point (with the same capital penalty as the route)
+        const score = (n * r.mats - val + pc + n * opt.pen + n * r.mats * opt.risk) / pts + (pts < span ? opt.pen : 0);
+        rows.push({ r, tier, score, n, to, net });
+      }
+      rows.sort((a, b) => a.tier - b.tier || a.score - b.score);
+      const seen = new Set();
+      return rows.filter((x) => (seen.has(x.r.name) ? false : (seen.add(x.r.name), true))).slice(0, 3).map(({ r, n, to, net }) => {
+        r.reag.forEach((g) => usePrice(g.id));
+        if (r.res) useItem(r.res.id);
+        return [r.spell, r.name, r.res ? r.res.id : 0, r.src, r.learn, r.y, r.g, r.gr, Math.round(r.mats), Math.round(r.sale), r.how,
+          patCost(r) || 0, round1(n), to, Math.round(net), r.reag.map((g) => [g.id, g.n]), r.rep || ''];
+      });
+    };
+    const stepOf = (seg, filters) => {
       const r = seg.r;
       r.reag.forEach((g) => usePrice(g.id));
       if (r.res) useItem(r.res.id);
       return [seg.from, seg.to, r.name, r.res ? r.res.id : 0, r.res ? r.res.n : 1, r.learn, r.y, r.g, r.gr, r.src,
         patCost(r) || 0, round1(crafts(r, seg.from, seg.to)), Math.round(r.mats), Math.round(r.sale), r.how,
         r.res ? round1(r.sold) : null, r.res ? (r.res.vs || 0) * r.res.n : 0, r.reag.map((g) => [g.id, g.n]), r.thin ? 1 : 0,
-        r.res && r.ahVal != null ? Math.round(r.ahVal) : null, r.res && P[r.res.id] ? (P[r.res.id].listed ?? null) : null, r.res ? (r.liquid ? 1 : 0) : 0];
+        r.res && r.ahVal != null ? Math.round(r.ahVal) : null, r.res && P[r.res.id] ? (P[r.res.id].listed ?? null) : null, r.res ? (r.liquid ? 1 : 0) : 0,
+        r.spell, filters ? altsFor(seg, filters) : null];
     };
     const FILTERS = { best: [allowBest, allowAny, allowLastOK, allowLast], trainer: [allowTrainer, allowBest, allowAny, allowLastOK, allowLast] };
     const best = route(recs, FILTERS.best, opt);
     const trainer = route(recs, FILTERS.trainer, opt);
     const seenRes = new Set();
     const gold = recs
-      .filter((r) => srcOK(r) && r.how === 'AH' && r.mats != null && !r.thin && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= Math.max(opt.goldMinSold, opt.minSold))
+      .filter((r) => srcOK(r) && !exclude.has(r.spell) && r.how === 'AH' && r.mats != null && !r.thin && r.learn <= 300 && r.sale - r.mats >= opt.goldMinNet && r.sold >= Math.max(opt.goldMinSold, opt.minSold))
       .map((r) => ({ r, score: (r.sale - r.mats) * Math.min(r.sold * 0.25, 20) }))
       .sort((a, b) => b.score - a.score)
       .filter(({ r }) => (seenRes.has(r.res.id) ? false : (seenRes.add(r.res.id), true)))
@@ -296,11 +330,11 @@ export function compute(recipes, P, BP, options = {}) {
         const r = risk === opt.risk ? defaults[v] : route(recs, FILTERS[v], { ...opt, risk, baseRisk: opt.risk });
         const k = keyOf(r.segs);
         if (k === defKey) { fam[v].push(0); continue; }
-        if (!altIdx.has(k)) { alts.push(r.segs.map(stepOf)); altIdx.set(k, alts.length); }
+        if (!altIdx.has(k)) { alts.push(r.segs.map((s) => stepOf(s))); altIdx.set(k, alts.length); }
         fam[v].push(altIdx.get(k));
       }
     }
-    out.profs[slug] = { best: best.segs.map(stepOf), trainer: trainer.segs.map(stepOf), gold, alts, fam };
+    out.profs[slug] = { best: best.segs.map((s) => stepOf(s, FILTERS.best)), trainer: trainer.segs.map((s) => stepOf(s, FILTERS.trainer)), gold, alts, fam };
     if (best.gaps.length || trainer.gaps.length) out.gaps[slug] = { best: best.gaps, trainer: trainer.gaps };
   }
   // prices + names for the gathering pages

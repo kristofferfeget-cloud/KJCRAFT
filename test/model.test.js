@@ -100,3 +100,18 @@ test('mats that are cheaper to craft carry their recipe', () => {
   assert.deepEqual(out.crafts[2996].slice(0, 2), [1, [[2589, 4]]]);
   assert.ok(out.prices[2589]);
 });
+
+test('steps list alternative recipes, and excluded recipes are never used', () => {
+  const recipes = buildRecipes(seemeta, { src: { V: [2] }, learn: {} });
+  const P = { 2589: { price: 40, sales: 1000, listed: 500 }, 4306: { price: 200, sales: 1000, listed: 500 } };
+  const out = compute(recipes, P, {}, {});
+  const best = out.profs.tailoring.best;
+  const robe = best.find((s) => s[2] === 'High Robe');
+  assert.ok(robe, 'High Robe in the route');
+  assert.equal(typeof robe[22], 'number', 'spell id on the step');
+  assert.ok(Array.isArray(robe[23]), 'alternatives on the step');
+  // skip the robe: it is gone from the route and the gold tips
+  const ex = compute(recipes, P, {}, { exclude: [robe[22]] });
+  assert.ok(!ex.profs.tailoring.best.some((s) => s[2] === 'High Robe'));
+  assert.ok(!ex.profs.tailoring.gold.some((g) => g[0] === 'High Robe'));
+});
