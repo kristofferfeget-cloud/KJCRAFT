@@ -1332,7 +1332,10 @@ function drawChart(el,sp){
   if(!pts.length){el.innerHTML='<div class="empty">'+esc(sp.empty||'No data yet.')+'</div>';return}
   const W=Math.max(260,el.clientWidth),H=el.clientHeight||240,pl=sp.pl||58,pr=16,pt=14,pb=26,iw=W-pl-pr,ih=H-pt-pb;
   const x0=pts[0].x,x1=pts[pts.length-1].x,span=Math.max(1,x1-x0);
-  let lo=Infinity,hi=-Infinity;pts.forEach(p=>{lo=Math.min(lo,p.lo!=null?p.lo:p.y);hi=Math.max(hi,p.hi!=null?p.hi:p.y)});
+  // the band never sets the scale on its own: odd listings would flatten the line, so it is capped near the line's range
+  const ys=pts.map(p=>p.y),ymax=Math.max(...ys),ymin=Math.min(...ys),cap=ymax*1.6,flo=ymin/1.6;
+  const bandOk=v=>v!=null&&isFinite(v);
+  let lo=Infinity,hi=-Infinity;pts.forEach(p=>{lo=Math.min(lo,p.y,bandOk(p.lo)?Math.max(p.lo,flo):p.y);hi=Math.max(hi,p.y,bandOk(p.hi)?Math.min(p.hi,cap):p.y)});
   if(sp.kind==='bars'||sp.zero)lo=0;
   if(hi===lo){hi=hi*1.1+1;lo=Math.max(0,lo*0.9)}
   const step=niceStep(hi-lo,4);lo=Math.floor(lo/step)*step;hi=Math.ceil(hi/step)*step;
@@ -1351,7 +1354,7 @@ function drawChart(el,sp){
     pts.forEach(p=>{const x=X(p.x)-bw/2,y=Y(p.y),h=Math.max(0,pt+ih-y),r=Math.min(4,bw/2,h);
       marks+='<path class="bar" d="M'+x.toFixed(1)+','+(pt+ih)+'V'+(y+r).toFixed(1)+'Q'+x.toFixed(1)+','+y.toFixed(1)+' '+(x+r).toFixed(1)+','+y.toFixed(1)+'H'+(x+bw-r).toFixed(1)+'Q'+(x+bw).toFixed(1)+','+y.toFixed(1)+' '+(x+bw).toFixed(1)+','+(y+r).toFixed(1)+'V'+(pt+ih)+'Z"/>'});
   }else{
-    if(pts.some(p=>p.lo!=null&&p.hi!=null)){const b=pts.filter(p=>p.lo!=null&&p.hi!=null);marks+='<path class="band" d="M'+b.map(p=>X(p.x).toFixed(1)+','+Y(p.hi).toFixed(1)).join('L')+'L'+b.slice().reverse().map(p=>X(p.x).toFixed(1)+','+Y(p.lo).toFixed(1)).join('L')+'Z"/>'}
+    if(pts.some(p=>p.lo!=null&&p.hi!=null)){const b=pts.filter(p=>p.lo!=null&&p.hi!=null),cl=v=>Math.max(lo,Math.min(hi,v));marks+='<path class="band" d="M'+b.map(p=>X(p.x).toFixed(1)+','+Y(cl(p.hi)).toFixed(1)).join('L')+'L'+b.slice().reverse().map(p=>X(p.x).toFixed(1)+','+Y(cl(p.lo)).toFixed(1)).join('L')+'Z"/>'}
     else if(sp.area)marks+='<path class="band" d="M'+X(pts[0].x).toFixed(1)+','+(pt+ih)+'L'+pts.map(p=>X(p.x).toFixed(1)+','+Y(p.y).toFixed(1)).join('L')+'L'+X(pts[pts.length-1].x).toFixed(1)+','+(pt+ih)+'Z"/>';
     marks+='<path class="ln" d="M'+pts.map(p=>X(p.x).toFixed(1)+','+Y(p.y).toFixed(1)).join('L')+'"/>';
     const e=pts[pts.length-1];marks+='<circle class="dot" cx="'+X(e.x).toFixed(1)+'" cy="'+Y(e.y).toFixed(1)+'" r="4"/>';
@@ -1469,7 +1472,7 @@ function viewItem(id){
   const u=usedIn(id);
   h+='<div class="grid2" style="margin-top:18px"><section class="card"><div class="ch"><h3>Numbers</h3><span class="sub">'+(L?'scan '+esc(ago(L.observedAt)):'from the price table')+'</span></div><dl class="kv mk-kv">'+
     '<dt>Lowest listing</dt><dd>'+money(L?L.minBuyout:x.min)+'</dd><dt>Listed</dt><dd>'+nf(L?L.quantity:x.qty)+(L&&L.auctions?' in '+nf(L.auctions)+' auctions':'')+'</dd>'+
-    '<dt>Sold per day</dt><dd>'+(x.sold!=null?'~'+fmt1(j&&j.sales&&j.sales.estimatedPerDay!=null?j.sales.estimatedPerDay:x.sold):'–')+'</dd>'+
+    '<dt>Sold per day</dt><dd>'+(x.sold!=null?(v=>'~'+(v>=100?nf(Math.round(v)):fmt1(v)))(j&&j.sales&&j.sales.estimatedPerDay!=null?j.sales.estimatedPerDay:x.sold):'–')+'</dd>'+
     '<dt>Medians</dt><dd>7d '+money(L?L.median7d:x.m7,{short:true})+' · 30d '+money(L?L.median30d:x.m30,{short:true})+(L&&L.median90d?' · 90d '+money(L.median90d,{short:true}):'')+'</dd>'+
     '<dt>30-day range</dt><dd>'+money(x.lo,{short:true})+' – '+money(x.hi,{short:true})+'</dd>'+
     '<dt>After the AH cut</dt><dd>'+money(x.med*(1-cutPct()/100))+' each</dd></dl></section>'+
