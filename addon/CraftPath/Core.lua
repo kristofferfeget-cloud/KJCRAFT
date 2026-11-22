@@ -219,6 +219,7 @@ local function LivePrice(id)
   if ok and type(v) == "number" and v > 0 and not issecret(v) then return v end
   return nil
 end
+ns.LivePrice = LivePrice
 
 function ns.HasLivePrices()
   local api = Auctionator and Auctionator.API and Auctionator.API.v1
@@ -502,6 +503,7 @@ local DEFAULTS = {
   variant = {},
   budget = { mode = "off", gold = 0, ahSales = false },
   livePrices = true,
+  tooltip = true,
   mini = { shown = true, point = { "TOP", "TOP", 0, -140 }, prof = "auto" },
   minimap = { hide = false, angle = 200 },
 }
@@ -686,6 +688,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
       SafeRegister(e)
     end
     ns.ScanSkills()
+    if ns.InitTooltips then pcall(ns.InitTooltips) end
     if ns.UI and ns.UI.Init then ns.UI:Init() end
     ns.RequestRefresh(true)
   elseif event == "CHAT_MSG_SKILL" then
@@ -724,6 +727,7 @@ local HELP = {
   "/cpath data - how old the price data is and how to update it",
   "/cpath gold auto, /cpath gold 150 or /cpath gold off - plan the route for your gold (auto = what you carry)",
   "/cpath sales - also count AH sales as you go when planning for your gold (on/off)",
+  "/cpath tooltip - AH price and AH-or-vendor advice on item tooltips (on/off)",
   "/cpath web - link to this route on the website",
   "/cpath scale 1.1 - change the size (0.7 to 1.5)",
   "/cpath reset - move the windows back to the middle",
@@ -781,6 +785,9 @@ local function Slash(input)
     Print(R.url or "?")
   elseif cmd == "web" then
     UI:ShowLink()
+  elseif cmd == "tooltip" or cmd == "tooltips" then
+    ns.db.tooltip = not (ns.db.tooltip ~= false)
+    Print(ns.db.tooltip and "AH prices on item tooltips are on." or "AH prices on item tooltips are off.")
   elseif cmd == "gold" or cmd == "budget" then
     local b = ns.db.budget
     if rest == "off" then b.mode = "off"

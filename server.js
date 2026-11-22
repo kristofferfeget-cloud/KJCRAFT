@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SLUGS, EXTRA_IDS, buildRecipes, neededIds, compute, normSrc } from './src/model.js';
-import { fetchSeemeta, fetchPrices } from './src/sources.js';
+import { fetchSeemeta, fetchPrices, fetchPriceTable } from './src/sources.js';
 import { buildDataLua, buildZip } from './src/addon.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -104,6 +104,8 @@ async function boot() {
   }
   const rc = await readJSON(path.join(CACHE_DIR, 'recipes.json'));
   if (rc && rc.recipes) { state.recipes = rc.recipes; state.recipesAt = rc.at || 0; state.recipesMeta = rc.meta || null; }
+  const pt = await readJSON(path.join(CACHE_DIR, 'pricetable.json'));
+  if (pt && Array.isArray(pt.rows)) state.table = pt;
 }
 
 async function refresh() {
@@ -136,6 +138,11 @@ async function refresh() {
     state.lastOk = now;
     state.lastError = null;
     await writeJSON(path.join(CACHE_DIR, 'latest.json'), state.payload);
+    // every priced item on the market, for the addon's tooltips (not needed for the routes, so never fatal)
+    try {
+      const t = await fetchPriceTable(MARKET, state.table && state.table.etag);
+      if (!t.notModified) { state.table = t; await writeJSON(path.join(CACHE_DIR, 'pricetable.json'), t); }
+    } catch (e) { log('price table failed:', e.message); }
     log(`refresh ok: ${priced}/${ids.length} priced in ${requests} requests, scan ${scannedAt}${gaps.length ? ', gaps in ' + gaps.join(',') : ''}`);
   } catch (e) {
     state.lastError = String((e && e.message) || e);
@@ -147,7 +154,7 @@ async function refresh() {
 }
 
 // ---------- addon downloads ----------
-const ADDON_FILES = ['CraftPath.toc', 'Core.lua', 'UI.lua', 'README.txt'];
+const ADDON_FILES = ['CraftPath.toc', 'Core.lua', 'UI.lua', 'Tooltip.lua', 'README.txt'];
 const addonSrc = {};
 const scripts = {};
 const addonCache = new Map();
@@ -171,14 +178,14 @@ function payloadFor(filters) {
   return { body: state.body, gz: state.gz, etag: state.etag, payload: state.payload };
 }
 function addonBuild(kind, v, base) {
-  const key = `${kind}|${v.etag}|${base}`;
+  const key = `${kind}|${v.etag}|${base}|${state.table ? state.table.ts : 0}`;
   let hit = addonCache.get(key);
   if (!hit) {
-    const lua = buildDataLua(v.payload, base);
+    const lua = buildDataLua(v.payload, base, state.table);
     const body = kind === 'zip'
       ? buildZip([...ADDON_FILES.map((f) => ({ name: `CraftPath/${f}`, data: addonSrc[f] })), { name: 'CraftPath/Data.lua', data: lua }])
       : Buffer.from(lua);
-    hit = { body, gz: kind === 'zip' ? null : gzipSync(body), etag: '"' + kind + '-' + v.etag.replace(/"/g, '') + '"' };
+    hit = { body, gz: kind === 'zip' ? null : gzipSync(body), etag: '"' + kind + '-' + v.etag.replace(/"/g, '') + '-' + (state.table ? state.table.ts : 0) + '"' };
     addonCache.set(key, hit);
     if (addonCache.size > 30) addonCache.delete(addonCache.keys().next().value);
   }

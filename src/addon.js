@@ -57,7 +57,7 @@ function notesFor(payload) {
 }
 
 /** The addon's Data.lua for a route payload. */
-export function buildDataLua(payload, baseUrl) {
+export function buildDataLua(payload, baseUrl, table) {
   const scanned = payload.scannedAt || payload.generatedAt;
   const ts = (iso) => (iso ? Math.floor(new Date(iso).getTime() / 1000) : 0);
   const names = {}, quality = {};
@@ -109,6 +109,14 @@ export function buildDataLua(payload, baseUrl) {
   L.push(`R.quality = ${idMap(quality, (q) => String(q))}`);
   L.push(`R.price = ${idMap(payload.prices || {}, (p) => luaVal([p[0], p[1], p[2] ?? null, p[3] ?? null]))}`);
   L.push(`R.bolts = ${idMap(BOLTS, luaVal)}`);
+  // every priced item on the market for the tooltips: [id] = {median, soldPerDay*10, listed} (copper)
+  L.push(`R.ahTs = ${table && table.ts ? table.ts : 0}`);
+  L.push('R.ah = {');
+  const rows = (table && table.rows) || [];
+  for (let i = 0; i < rows.length; i += 12) {
+    L.push(rows.slice(i, i + 12).map(([id, m, s, q]) => `[${id}]={${m},${s == null ? 'nil' : Math.round(s)},${q == null ? 'nil' : Math.round(q)}}`).join(',') + ',');
+  }
+  L.push('}');
   L.push(`R.notes = ${idMap(notes, luaStr)}`);
   L.push(`R.cooldown = ${idMap(cooldown, () => 'true')}`);
   L.push('');

@@ -1109,7 +1109,7 @@ function updateChip(){
 function updateFoot(){
   const f=document.getElementById('foot');if(!D){f.innerHTML='';return}
   const live=isLive();
-  f.innerHTML='<p>'+(live?'Prices: AHledger, '+esc(D.market)+' – fetched automatically every '+(D.refreshMinutes||30)+' minutes. Last AH scan '+fmtWhen(D.scannedAt||D.generatedAt)+'.':'Prices: AHledger snapshot '+esc(D.asOf)+', '+esc(D.market)+'.')+' Recipes and skill levels: seemeta'+(D.recipesBuild?' (build '+esc(D.recipesBuild)+')':'')+' and Warcraft Wiki.</p><p>Sale values are after the '+cutPct()+'% AH cut. Prices change – treat the numbers as a guide, not gospel. Your skill levels are only saved in this browser.</p>';
+  f.innerHTML='<p>'+(live?'<a href="https://ahledger.com" rel="noopener">Prices from AHledger</a>, '+esc(D.market)+' – fetched automatically every '+(D.refreshMinutes||30)+' minutes. Last AH scan '+fmtWhen(D.scannedAt||D.generatedAt)+'.':'<a href="https://ahledger.com" rel="noopener">Prices from AHledger</a>, snapshot '+esc(D.asOf)+', '+esc(D.market)+'.')+' Recipes and skill levels: seemeta'+(D.recipesBuild?' (build '+esc(D.recipesBuild)+')':'')+' and Warcraft Wiki.</p><p>Sale values are after the '+cutPct()+'% AH cut. Prices change – treat the numbers as a guide, not gospel. Your skill levels are only saved in this browser.</p>';
 }
 function setData(j){D=j;ITEMS=j.items||{};PRICES=j.prices||{};CRAFTS=j.crafts||{};S.open={}}
 let etag=null,etagUrl=null,loading=false,again=false;

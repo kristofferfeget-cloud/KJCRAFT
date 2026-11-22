@@ -65,3 +65,28 @@ export async function fetchPrices(market, ids, { batch = 100, delayMs = 350 } = 
   }
   return { P, BP, names, label, scannedAt, requests };
 }
+
+/**
+ * Every priced item on a market from AHledger's price table (one request, plain text, ETag).
+ * Returns { ts, rows: [[id, median, soldPerDayTimes10|null, listed|null], ...], etag } or { notModified: true }.
+ * Format: header "AHL1|market|unixTime|rows", then id:median:minBuyout:quantity:median7d:median30d:low30d:high30d:soldPerDay*10
+ */
+export async function fetchPriceTable(market, etag) {
+  const headers = { 'user-agent': UA, accept: 'text/plain' };
+  if (etag) headers['if-none-match'] = etag;
+  const res = await fetch(`${AH_BASE}/v1/pricetable/${market}`, { headers, signal: AbortSignal.timeout(45000) });
+  if (res.status === 304) return { notModified: true };
+  if (!res.ok) throw new Error(`${res.status} from AHledger price table`);
+  const lines = (await res.text()).split(/\r?\n/);
+  const head = (lines[0] || '').split('|');
+  if (head[0] !== 'AHL1') throw new Error('AHledger price table: unknown format ' + String(head[0]).slice(0, 20));
+  const num = (s) => (s === undefined || s === '' ? null : Number(s));
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const f = lines[i].split(':');
+    const id = num(f[0]), median = num(f[1]);
+    if (!Number.isInteger(id) || id <= 0 || median == null || !Number.isFinite(median)) continue;
+    rows.push([id, Math.round(median), num(f[8]), num(f[3])]);
+  }
+  return { ts: num(head[2]) || Math.floor(Date.now() / 1000), rows, etag: res.headers.get('etag') };
+}
