@@ -1408,7 +1408,7 @@ function viewMarket(){
         empty:ECON?'No daily figures yet.':'Loading…',tip:p=>'<div class="th">'+esc(new Date(p.x).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+'</div>'+tipRow(esc(goldShort(p.y)),'gold listed')+tipRow(compact(p.d.auctions),'auctions')+tipRow(nf(p.d.scans),'scans')},200))+'</div></section>'+
     '<section class="card"><div class="ch"><h3>By item class</h3><span class="sub">share of gold listed</span></div><div class="cb">'+classBars(E)+'</div></section></div>';
   // movers + most traded
-  const mv=MK.items.filter(x=>x.ch7!=null&&(x.sold||0)>=5&&x.med>=100);
+  const mv=MK.items.filter(x=>x.ch7!=null&&(x.sold||0)>=10&&(x.qty||0)>=20&&x.m7>=50&&x.med>=50);
   const up=mv.slice().sort((a,b)=>b.ch7-a.ch7).slice(0,8),dn=mv.slice().sort((a,b)=>a.ch7-b.ch7).slice(0,8);
   const top=liquid.slice().sort((a,b)=>b.turn-a.turn).slice(0,8);
   const mini=(list,f)=>'<ol class="mkl">'+list.map(x=>'<li><a href="#market/item/'+x.id+'">'+mkIcon(x,20)+'<span class="nm q'+x.q+'">'+esc(x.name)+'</span></a><span class="r">'+f(x)+'</span></li>').join('')+'</ol>';
@@ -1416,7 +1416,7 @@ function viewMarket(){
     '<section class="card"><div class="ch"><h3>Rising</h3><span class="sub">vs 7-day median</span></div>'+(up.length?mini(up,x=>pctc(x.ch7)+'<small>'+money(x.med,{short:true})+'</small>'):'<div class="empty">Nothing yet.</div>')+'</section>'+
     '<section class="card"><div class="ch"><h3>Falling</h3><span class="sub">vs 7-day median</span></div>'+(dn.length?mini(dn,x=>pctc(x.ch7)+'<small>'+money(x.med,{short:true})+'</small>'):'<div class="empty">Nothing yet.</div>')+'</section>'+
     '<section class="card"><div class="ch"><h3>Most gold traded</h3><span class="sub">per day</span></div>'+mini(top,x=>esc(goldShort(x.turn))+'<small>'+compact(x.sold)+'/day</small>')+'</section></div>'+
-    '<p class="note mk-note">Rising and falling: items that sell at least 5 a day and cost at least 1s. Sold per day is AHledger’s estimate from the last week of scans.</p>';
+    '<p class="note mk-note">Rising and falling: items with at least 20 listed, 10 sold a day and a 7-day median of 50c or more, so a single odd listing can’t top the list. Sold per day is AHledger’s estimate from the last week of scans.</p>';
   // all items
   const all=filteredItems(),shown=all.slice(0,MKS.limit);
   const th=(k,l,cls)=>'<th class="'+(cls||'')+'"><button type="button" data-msort="'+k+'" class="'+(MKS.sort===k?'on':'')+'">'+l+(MKS.sort===k?(MKS.dir<0?' ↓':' ↑'):'')+'</button></th>';
