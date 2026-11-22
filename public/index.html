@@ -18,6 +18,7 @@
   --d-or:#e8691a;--d-ye:#c9a200;--d-gr:#38a043;--d-gy:#a9aeb7;
   --q0:#8a8a8a;--q1:#22262d;--q2:#168400;--q3:#005dbf;--q4:#8b2fd1;--q5:#c96400;
   --acc:#3b6fe0;
+  --mk:#0f8f7f;--up:#12784a;--dn:#bf2430;
   --r:11px;--shadow:0 1px 0 rgba(16,20,30,.04),0 1px 3px rgba(16,20,30,.07);
   --f-ui:"IBM Plex Sans",system-ui,sans-serif;--f-num:"IBM Plex Mono",ui-monospace,monospace;--f-head:"Newsreader",Georgia,serif;
   color-scheme:light;
@@ -27,7 +28,7 @@
     --bg:#0c0e12;--panel:#14171e;--panel-2:#1a1e27;--sunk:#0f1217;
     --ink:#eceef3;--ink-2:#adb3bf;--ink-3:#757d8d;--line:#262b36;--line-2:#1e222c;
     --gold:#f1c04a;--silver:#b9c0cc;--copper:#d8925e;
-    --pos:#4cd98a;--neg:#ff7a7a;
+    --pos:#4cd98a;--neg:#ff7a7a;--mk:#27ab98;--up:#4cd98a;--dn:#ff7a7a;
     --d-or:#ff8a3d;--d-ye:#f4d81c;--d-gr:#4fc95a;--d-gy:#6c727d;
     --q0:#9d9d9d;--q1:#f1f1f1;--q2:#3ce81e;--q3:#3d9bff;--q4:#b86eff;--q5:#ff8a1a;
     --shadow:0 1px 0 rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.4);
@@ -431,6 +432,79 @@ footer p{margin:0 0 4px}
   .hide-s{display:none}
   .chip .ct{display:none}
 }
+
+/* market */
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.lede{margin:8px 0 0;color:var(--ink-3);font-size:14px}
+.crumb{margin:0 0 10px;font-size:13.5px}.crumb a{color:var(--ink-2)}
+.chg{font:600 12.5px var(--f-num);white-space:nowrap;color:var(--ink-2)}.chg.up{color:var(--up)}.chg.dn{color:var(--dn)}
+.ii{border-radius:5px;vertical-align:middle;flex:none;background:var(--sunk)}.ii.ph{display:inline-block}
+.mk-stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+.mk-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:6px}
+.mk-note{border:0;padding:4px 2px 18px}
+.cb{padding:12px 14px 10px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;overflow:visible}
+.chart .gl{stroke:var(--line-2);stroke-width:1}
+.chart .ax{stroke:var(--line);stroke-width:1}
+.chart .yt,.chart .xt{fill:var(--ink-3);font:11px var(--f-num)}
+.chart .yt{text-anchor:end}
+.chart .ln{fill:none;stroke:var(--mk);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .band{fill:var(--mk);opacity:.12}
+.chart .bar{fill:var(--mk);opacity:.85}
+.chart .dot,.chart .hd{fill:var(--mk);stroke:var(--panel);stroke-width:2}
+.chart .xh{stroke:var(--ink-3);stroke-width:1}
+.chart .hit{fill:transparent;cursor:crosshair;outline:none}
+.chart .hit:focus-visible{stroke:var(--mk);stroke-width:1}
+.ctip{position:absolute;display:none;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow);padding:8px 11px;font-size:12.5px;min-width:130px;z-index:2}
+.ctip .th{color:var(--ink-3);font-size:11.5px;margin-bottom:4px}
+.ctip .tr{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.ctip .tr b{font-weight:600;font-family:var(--f-num)}.ctip .tr span{color:var(--ink-3)}
+.hb{list-style:none;margin:0;padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+.cb>.hb{padding:6px 4px}
+.hb li{display:grid;grid-template-columns:minmax(90px,30%) 1fr 42px;gap:10px;align-items:center;font-size:13px}
+.hb .hl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.hb .ht{height:10px;background:var(--panel-2);border-radius:5px;overflow:hidden}
+.hb .ht i{display:block;height:100%;background:var(--mk);border-radius:0 4px 4px 0}
+.hb .hv{text-align:right;font:600 12.5px var(--f-num)}
+.mkl{list-style:none;margin:0;padding:6px 0}
+.mkl li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 18px}
+.mkl li+li{border-top:1px solid var(--line-2)}
+.mkl a,.mkl button{display:flex;align-items:center;gap:9px;min-width:0;color:var(--ink);text-decoration:none;background:none;border:0;padding:0;font:inherit;cursor:pointer;text-align:left}
+.mkl .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mkl .r{text-align:right;white-space:nowrap;font-size:13px}.mkl .r small{display:block;color:var(--ink-3);font-size:11.5px}
+.mk-f{display:flex;flex-wrap:wrap;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line-2);align-items:flex-end}
+.mk-f .grow{flex:1 1 220px}
+.mk-f input,.mk-f select,.pfadd input{height:38px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:0 11px;font:14px var(--f-ui);min-width:0}
+.mk-f #mk-min{width:110px}
+.mkt td,.mkt th{text-align:right;white-space:nowrap}
+.mkt .l{text-align:left}
+.mkt th button{all:unset;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit}
+.mkt th button.on{color:var(--ink)}
+.mkt td.l a{display:inline-flex;align-items:center;gap:9px;color:var(--ink);text-decoration:none;max-width:320px}
+.mkt td.l .nm{overflow:hidden;text-overflow:ellipsis}
+.mkt td.l small{display:block;color:var(--ink-3);font-size:11.5px;margin:1px 0 0 31px}
+.mkt td small{display:block;color:var(--ink-3);font-size:11.5px}
+.mkt tbody tr:hover td{background:var(--panel-2)}
+.tw{overflow-x:auto}
+.rb{display:inline-block;position:relative;width:70px;height:6px;border-radius:3px;background:var(--panel-2);border:1px solid var(--line-2);vertical-align:middle}
+.rb i{position:absolute;top:-3px;width:4px;height:10px;margin-left:-2px;border-radius:2px;background:var(--mk)}
+.rb.none{opacity:.4}
+.more{padding:12px 18px;border-top:1px solid var(--line-2);text-align:center}
+.mk-ih{align-items:center}
+.ih{display:flex;gap:14px;align-items:center}
+.ih-p{text-align:right}.ih-p .big{font:600 30px var(--f-num);margin-bottom:4px}
+.mk-tools{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin:0 0 16px}
+.mk-tools .seg button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.pfadd{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.pfadd input{width:120px}
+.mk-kv{padding:14px 18px}
+details.tv{border-top:1px solid var(--line-2)}
+details.tv summary{cursor:pointer;padding:10px 18px;font-size:13px;color:var(--ink-2)}
+.pfin{width:86px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:0 8px;font:13px var(--f-num);text-align:right}
+.pf-s{border-top:1px solid var(--line-2)}
+@media (max-width:1100px){.mk-3{grid-template-columns:1fr}.mk-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:720px){.mk-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.mk-stats .stat:last-child:nth-child(odd){grid-column:span 2}.ih-p{text-align:left}.mkt td.l a{max-width:180px}.mk-tools{align-items:stretch}}
 </style>
 </head>
 <body>
@@ -460,6 +534,8 @@ function apiUrl(){const f=S.filters;return '/api/data?minSold='+f.minSold+'&minL
 const KEY='wowf-yrkesruter-v1';
 
 const ICON={
+  market:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17"/><path d="M4 16l5-5.5 4 3 7-7.5"/><path d="M15.5 6H20v4.5"/></svg>',
+  portfolio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="17" height="12.5" rx="2"/><path d="M8.5 7V5.5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2V7"/><path d="M3.5 12.5h17"/></svg>',
   home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
   alchemy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6.2L4.8 18.1A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-2.9L14 9.2V3"/><path d="M7.3 15h9.4"/></svg>',
   blacksmithing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 7h13c.4 2.6 2.4 3.8 6 4v1.5c-3.2 0-5.3 1-6.3 3H8.8C8 13.6 6 12.5 2.5 12z"/><path d="M8.5 15.5 7 21h10l-1.5-5.5"/></svg>',
@@ -757,6 +833,8 @@ function renderRail(){
   rail.innerHTML='<a class="rl'+(S.view==='overview'?' on':'')+'" href="#overview" style="--acc:var(--ink-2)"><span class="gl">'+ICON.home+'</span><span>Overview</span><span></span></a>'+
   '<div class="rl-h">Crafting</div>'+PROFS.filter(p=>p.kind==='craft').map(railItem).join('')+
   '<div class="rl-h">Gathering</div>'+PROFS.filter(p=>p.kind==='gather').map(railItem).join('')+
+  '<div class="rl-h">Market</div><a class="rl'+(S.view==='market'?' on':'')+'" href="#market" style="--acc:#0f8f7f"><span class="gl">'+ICON.market+'</span><span>Market overview</span><span></span></a>'+
+  '<a class="rl'+(S.view==='portfolio'?' on':'')+'" href="#portfolio" style="--acc:#0f8f7f"><span class="gl">'+ICON.portfolio+'</span><span>Portfolio</span><span class="sk">'+(PF.length||'')+'</span></a>'+
   '<div class="rl-h">Tools</div><a class="rl'+(S.view==='addon'?' on':'')+'" href="#addon" style="--acc:#8b5cf6"><span class="gl">'+ICON.addon+'</span><span>WoW addon</span><span></span></a>';
   const on=rail.querySelector('.rl.on');if(on&&window.innerWidth<=860){try{on.scrollIntoView({inline:'center',block:'nearest'})}catch(e){}}
 }
@@ -1077,9 +1155,16 @@ function viewGather(P){
 }
 
 /* ---------- render / events ---------- */
-function route(){const raw=(location.hash||'').replace('#','');const parts=raw.split('/'),h=parts[0],sk=parts[1],tt=parts[2];if(h==='addon'){S.view='addon';return}S.view=PBY[h]?h:'overview';if(PBY[h]&&sk&&/^\d+$/.test(sk)){S.skill[h]=Math.max(1,Math.min(300,+sk));if(tt&&/^\d+$/.test(tt))S.target[h]=Math.max(2,Math.min(300,+tt));save();try{history.replaceState(null,'','#'+h)}catch(e){}}}
+function route(){const raw=(location.hash||'').replace('#','');const parts=raw.split('/'),h=parts[0],sk=parts[1],tt=parts[2];S.mkItem=null;if(h==='market'){S.view='market';S.mkItem=parts[1]==='item'&&/^\d+$/.test(parts[2]||'')?+parts[2]:null;return}if(h==='portfolio'){S.view='portfolio';return}if(h==='addon'){S.view='addon';return}S.view=PBY[h]?h:'overview';if(PBY[h]&&sk&&/^\d+$/.test(sk)){S.skill[h]=Math.max(1,Math.min(300,+sk));if(tt&&/^\d+$/.test(tt))S.target[h]=Math.max(2,Math.min(300,+tt));save();try{history.replaceState(null,'','#'+h)}catch(e){}}}
 function setTarget(v,keep){const P=PBY[S.view];if(!P)return;v=Math.max(2,Math.min(300,Math.round(+v||300)));if(v>=300)delete S.target[P.id];else S.target[P.id]=v;save();render(keep)}
 function render(keepFocus){
+  if(inMarket()){
+    document.documentElement.style.setProperty('--acc','#0f8f7f');renderRail();
+    main.innerHTML=S.view==='portfolio'?viewPortfolio():S.mkItem?viewItem(S.mkItem):viewMarket();
+    mountCharts();
+    if(keepFocus){const i=document.getElementById(typeof keepFocus==='string'?keepFocus:'');if(i){i.focus();if(i.tagName==='INPUT'&&i.type!=='number'){try{const v=i.value;i.value='';i.value=v}catch(e){}}}}
+    return;
+  }
   if(!D){renderRail();return}
   const P=PBY[S.view];
   document.documentElement.style.setProperty('--acc',P?P.hue:'#3b6fe0');
@@ -1180,6 +1265,305 @@ async function loadData(){
     }
   }finally{loading=false;updateChip();if(again){again=false;loadData()}}
 }
+/* ---------- market overview, item pages and portfolio ---------- */
+const MK_HUE='var(--mk)';
+let MK=null,MKload=null,MKerr=null,ECON=null,ECONload=null,ECONerr=null;
+const MKS={q:'',cls:'',minSold:1,sort:'turn',dir:-1,limit:100};
+const HIST=new Map();
+function ahApi(){return (MK&&MK.ahApi)||'https://api.ahledger.com'}
+function mkId(){return (MK&&MK.marketId)||'forever.normal.alliance.eu'}
+function inMarket(){return S.view==='market'||S.view==='portfolio'}
+function prepMarket(j){
+  const items=j.items.map(r=>{const [id,name,q,ci,icon,lvl,med,min,qty,m7,m30,lo,hi,sold]=r;
+    return {id,name:name||('Item #'+id),named:!!name,q:q==null?1:q,cls:ci>=0?j.classes[ci]:'',icon,lvl,med,min,qty,m7,m30,lo,hi,sold,
+      ch7:m7?med/m7-1:null,ch30:m30?med/m30-1:null,turn:sold!=null?sold*med:null}});
+  const byId=new Map(items.map(x=>[x.id,x]));
+  return Object.assign({},j,{items,byId});
+}
+function loadMarket(){
+  if(MKload)return MKload;
+  MKload=fetch('/api/market',{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(r.status===503?'not ready':'HTTP '+r.status);return r.json()})
+    .then(j=>{MK=prepMarket(j);MKerr=null}).catch(e=>{MKerr=String(e.message||e)})
+    .finally(()=>{MKload=null;if(inMarket()){const ae=document.activeElement;render(ae&&ae.id?ae.id:false)}});
+  return MKload;
+}
+function loadEcon(){
+  if(ECON&&Date.now()-ECON._at<300000)return Promise.resolve(ECON);
+  if(ECONload)return ECONload;
+  ECONload=fetch(ahApi()+'/v1/economy/'+mkId()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+    .then(j=>{j._at=Date.now();ECON=j;ECONerr=null}).catch(e=>{ECONerr=String(e.message||e)})
+    .finally(()=>{ECONload=null;if(S.view==='market'&&!S.mkItem)render()});
+  return ECONload;
+}
+// price history straight from AHledger (24h: per scan, 7d: hourly, 30d: daily); kept for a minute
+function loadHist(id,range){
+  const k=id+'|'+range,h=HIST.get(k);
+  if(h&&(h.data||h.err)&&Date.now()-h.at<60000)return Promise.resolve(h);
+  if(h&&h.p)return h.p;
+  const o={at:Date.now(),data:null,err:null};
+  o.p=fetch(ahApi()+'/v1/prices/'+mkId()+'/'+id+'?range='+range).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+    .then(j=>{o.data=j}).catch(e=>{o.err=String(e.message||e)}).finally(()=>{o.p=null;o.at=Date.now()});
+  HIST.set(k,o);
+  return o.p.then(()=>o);
+}
+
+// formatting
+function pctc(v,dp){if(v==null||!isFinite(v))return '<span class="m none">–</span>';const a=Math.abs(v*100),s=a<0.05?'':v>0?'▲ +':'▼ −';return '<span class="chg '+(a<0.05?'':v>0?'up':'dn')+'">'+s+(a>=100?a.toFixed(0):a.toFixed(dp==null?1:dp))+'%</span>'}
+function mkIcon(x,sz){const u=x.icon?(x.icon.startsWith('http')?x.icon:(MK.iconBase+x.icon+'.jpg')):'';return u?'<img class="ii" src="'+esc(u)+'" alt="" loading="lazy" width="'+(sz||22)+'" height="'+(sz||22)+'">':'<span class="ii ph" style="width:'+(sz||22)+'px;height:'+(sz||22)+'px"></span>'}
+function compact(n){if(n==null)return '–';if(n>=1e6)return (n/1e6).toFixed(n>=1e7?0:1)+'M';if(n>=1e4)return Math.round(n/1e3)+'K';return nf(Math.round(n))}
+function goldShort(c){if(c==null)return '–';const g=c/10000;if(g>=1e6)return (g/1e6).toFixed(1)+'M g';if(g>=1e4)return Math.round(g/1e3)+'K g';if(g>=100)return nf(Math.round(g))+'g';return moneyPlain(c)}
+function rangeBar(x){if(x.lo==null||x.hi==null||x.hi<=x.lo)return '<span class="rb none"></span>';const p=Math.max(0,Math.min(1,(x.med-x.lo)/(x.hi-x.lo)));return '<span class="rb" title="30-day low '+esc(moneyPlain(x.lo))+', high '+esc(moneyPlain(x.hi))+'"><i style="left:'+(p*100).toFixed(1)+'%"></i></span>'}
+
+/* ----- charts: one series, crosshair + tooltip, drawn at the container's real width ----- */
+const CH={};
+function chartBox(id,spec,h){CH[id]=spec;return '<div class="chart" id="ch-'+id+'" style="height:'+(h||240)+'px" role="img" aria-label="'+esc(spec.label||'Chart')+'"></div>'}
+// axis money: enough decimals that neighbouring ticks never read the same (1.2s, 1.4s …)
+function axisMoney(v,step){
+  const dec=(unit)=>{const s=step/unit;return s>=1?0:s>=0.1?1:2};
+  if(v>=10000||step>=10000)return (v/10000).toFixed(dec(10000)).replace(/\.0+$/,'')+'g';
+  if(v>=100||step>=100)return (v/100).toFixed(dec(100)).replace(/\.0+$/,'')+'s';
+  return Math.round(v)+'c';
+}
+function niceStep(r,n){const raw=r/Math.max(1,n),p=Math.pow(10,Math.floor(Math.log10(raw||1))),f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+function fmtT(t,span){const d=new Date(t);if(span<=2*86400000)return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});if(span<=10*86400000)return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric'});return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}
+function mountCharts(){Object.keys(CH).forEach(id=>{const el=document.getElementById('ch-'+id);if(!el){delete CH[id];return}drawChart(el,CH[id])})}
+function drawChart(el,sp){
+  const pts=sp.pts||[];
+  if(!pts.length){el.innerHTML='<div class="empty">'+esc(sp.empty||'No data yet.')+'</div>';return}
+  const W=Math.max(260,el.clientWidth),H=el.clientHeight||240,pl=sp.pl||58,pr=16,pt=14,pb=26,iw=W-pl-pr,ih=H-pt-pb;
+  const x0=pts[0].x,x1=pts[pts.length-1].x,span=Math.max(1,x1-x0);
+  let lo=Infinity,hi=-Infinity;pts.forEach(p=>{lo=Math.min(lo,p.lo!=null?p.lo:p.y);hi=Math.max(hi,p.hi!=null?p.hi:p.y)});
+  if(sp.kind==='bars'||sp.zero)lo=0;
+  if(hi===lo){hi=hi*1.1+1;lo=Math.max(0,lo*0.9)}
+  const step=niceStep(hi-lo,4);lo=Math.floor(lo/step)*step;hi=Math.ceil(hi/step)*step;
+  const bars=sp.kind==='bars',slot=iw/Math.max(1,pts.length);
+  // bars sit in the middle of equal slots, so the first and last never run into the axis labels
+  const X=x=>bars?pl+slot*(pts.length===1?0.5:(x-x0)/span*(pts.length-1)+0.5):pl+(pts.length===1?iw/2:(x-x0)/span*iw),Y=y=>pt+ih-(y-lo)/(hi-lo)*ih;
+  const yf=sp.yMoney?(v=>axisMoney(v,step)):(sp.yFmt||(v=>compact(v)));
+  let g='';
+  for(let v=lo;v<=hi+step/2;v+=step){const y=Y(v);g+='<line class="gl" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/><text class="yt" x="'+(pl-8)+'" y="'+(y+4).toFixed(1)+'">'+esc(yf(v))+'</text>'}
+  let nt=Math.min(pts.length,Math.max(2,Math.floor(iw/110)));
+  if(span>2*86400000)nt=Math.min(nt,Math.floor(span/86400000)+1); // never two ticks on the same day
+  for(let i=0;i<nt;i++){const t=x0+span*(nt===1?0.5:i/(nt-1));const x=X(t);g+='<text class="xt" x="'+x.toFixed(1)+'" y="'+(H-6)+'" text-anchor="'+(i===0&&nt>1?'start':i===nt-1&&nt>1?'end':'middle')+'">'+esc(fmtT(t,span))+'</text>'}
+  let marks='';
+  if(sp.kind==='bars'){
+    const bw=Math.max(1,Math.min(24,slot-2));
+    pts.forEach(p=>{const x=X(p.x)-bw/2,y=Y(p.y),h=Math.max(0,pt+ih-y),r=Math.min(4,bw/2,h);
+      marks+='<path class="bar" d="M'+x.toFixed(1)+','+(pt+ih)+'V'+(y+r).toFixed(1)+'Q'+x.toFixed(1)+','+y.toFixed(1)+' '+(x+r).toFixed(1)+','+y.toFixed(1)+'H'+(x+bw-r).toFixed(1)+'Q'+(x+bw).toFixed(1)+','+y.toFixed(1)+' '+(x+bw).toFixed(1)+','+(y+r).toFixed(1)+'V'+(pt+ih)+'Z"/>'});
+  }else{
+    if(pts.some(p=>p.lo!=null&&p.hi!=null)){const b=pts.filter(p=>p.lo!=null&&p.hi!=null);marks+='<path class="band" d="M'+b.map(p=>X(p.x).toFixed(1)+','+Y(p.hi).toFixed(1)).join('L')+'L'+b.slice().reverse().map(p=>X(p.x).toFixed(1)+','+Y(p.lo).toFixed(1)).join('L')+'Z"/>'}
+    else if(sp.area)marks+='<path class="band" d="M'+X(pts[0].x).toFixed(1)+','+(pt+ih)+'L'+pts.map(p=>X(p.x).toFixed(1)+','+Y(p.y).toFixed(1)).join('L')+'L'+X(pts[pts.length-1].x).toFixed(1)+','+(pt+ih)+'Z"/>';
+    marks+='<path class="ln" d="M'+pts.map(p=>X(p.x).toFixed(1)+','+Y(p.y).toFixed(1)).join('L')+'"/>';
+    const e=pts[pts.length-1];marks+='<circle class="dot" cx="'+X(e.x).toFixed(1)+'" cy="'+Y(e.y).toFixed(1)+'" r="4"/>';
+  }
+  el.innerHTML='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+g+'<line class="ax" x1="'+pl+'" x2="'+(W-pr)+'" y1="'+(pt+ih)+'" y2="'+(pt+ih)+'"/>'+marks+
+    '<line class="xh" y1="'+pt+'" y2="'+(pt+ih)+'" style="display:none"/><circle class="hd" r="4" style="display:none"/><rect class="hit" x="'+pl+'" y="'+pt+'" width="'+iw+'" height="'+ih+'" tabindex="0"/></svg><div class="ctip" role="status"></div>';
+  const svg=el.querySelector('svg'),xh=svg.querySelector('.xh'),hd=svg.querySelector('.hd'),tip=el.querySelector('.ctip'),hit=svg.querySelector('.hit');
+  const show=i=>{const p=pts[i];const x=X(p.x),y=Y(p.y);xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.style.display='';
+    if(sp.kind!=='bars'){hd.setAttribute('cx',x);hd.setAttribute('cy',y);hd.style.display=''}
+    tip.innerHTML=sp.tip(p);tip.style.display='block';const tw=tip.offsetWidth;tip.style.left=Math.max(4,Math.min(W-tw-4,x+12))+'px';tip.style.top=Math.max(0,Math.min(H-tip.offsetHeight,y-40))+'px'};
+  const near=cx=>{let b=0,bd=Infinity;pts.forEach((p,i)=>{const d=Math.abs(X(p.x)-cx);if(d<bd){bd=d;b=i}});return b};
+  let cur=pts.length-1;
+  hit.addEventListener('pointermove',ev=>{const r=svg.getBoundingClientRect();cur=near(ev.clientX-r.left);show(cur)});
+  hit.addEventListener('pointerleave',()=>{xh.style.display='none';hd.style.display='none';tip.style.display='none'});
+  hit.addEventListener('focus',()=>show(cur));hit.addEventListener('blur',()=>{xh.style.display='none';hd.style.display='none';tip.style.display='none'});
+  hit.addEventListener('keydown',ev=>{if(ev.key==='ArrowLeft'){cur=Math.max(0,cur-1);show(cur);ev.preventDefault()}if(ev.key==='ArrowRight'){cur=Math.min(pts.length-1,cur+1);show(cur);ev.preventDefault()}});
+}
+let chartRT;window.addEventListener('resize',()=>{clearTimeout(chartRT);chartRT=setTimeout(mountCharts,150)});
+const tipRow=(v,l)=>'<div class="tr"><b>'+v+'</b><span>'+esc(l)+'</span></div>';
+const tipHead=t=>'<div class="th">'+esc(new Date(t).toLocaleString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))+'</div>';
+
+/* ----- the market page ----- */
+function mkHead(title,sub){return '<div class="ph"><div><div class="eyebrow">Market · '+esc((MK&&MK.market)||'Normal Alliance EU')+'</div><h1>'+title+'</h1><p class="lede">'+sub+'</p></div></div>'}
+function mkWait(){
+  if(!MK&&!MKload)loadMarket();
+  return mkHead('Market','Every item on the auction house, with prices, changes and charts.')+(MKerr?'<div class="empty">Market data could not be loaded ('+esc(MKerr)+'). It is fetched together with the routes – try again in a minute.</div>':'<div class="loading">Loading the market…</div>');
+}
+function filteredItems(){
+  const q=MKS.q.trim().toLowerCase(),min=+MKS.minSold||0;
+  let a=MK.items.filter(x=>(!q||x.name.toLowerCase().includes(q))&&(!MKS.cls||x.cls===MKS.cls)&&((x.sold||0)>=min||(q&&min<=1)));
+  const k=MKS.sort,d=MKS.dir,val=x=>k==='name'?x.name:x[k];
+  a.sort((A,B)=>{const va=val(A),vb=val(B);if(va==null&&vb==null)return 0;if(va==null)return 1;if(vb==null)return -1;return (k==='name'?va.localeCompare(vb):va-vb)*d});
+  return a;
+}
+function viewMarket(){
+  if(!MK)return mkWait();
+  loadEcon();
+  const sc=MK.scannedAt,E=ECON&&ECON.current;
+  let h=mkHead('Market',nf(MK.total)+' items on the AH · last scan '+esc(ago(sc))+' · <a href="https://ahledger.com" rel="noopener">Prices from AHledger</a>'+(MK.named<MK.total?' · item names loading ('+nf(MK.named)+' of '+nf(MK.total)+')':''));
+  // stat tiles
+  const liquid=MK.items.filter(x=>x.turn!=null);
+  const traded=liquid.reduce((s,x)=>s+x.turn,0);
+  h+='<section class="stats mk-stats">'+
+    '<div class="stat"><dt>Gold listed</dt><dd>'+(E?esc(goldShort(E.value)):'<span class="m none">–</span>')+'</dd><small>'+(ECON&&ECON.weekChange!=null?pctc(ECON.weekChange)+' vs a week ago':'all listings at their median')+'</small></div>'+
+    '<div class="stat"><dt>Auctions</dt><dd>'+(E?compact(E.auctions):'–')+'</dd><small>'+(E?compact(E.units)+' units':'')+'</small></div>'+
+    '<div class="stat"><dt>Traded per day</dt><dd>'+esc(goldShort(traded))+'</dd><small>estimate: sold/day × median</small></div>'+
+    '<div class="stat"><dt>Items priced</dt><dd>'+nf(MK.total)+'</dd><small>'+(E&&E.contributors?E.contributors+' scanners today':'on this market')+'</small></div>'+
+    '<div class="stat"><dt>Last scan</dt><dd>'+esc(ago(sc))+'</dd><small>'+esc(fmtWhen(sc))+'</small></div></section>';
+  // gold listed per day + classes
+  const daily=(ECON&&ECON.daily)||[];
+  h+='<div class="grid2 mk-g">'+
+    '<section class="card"><div class="ch"><h3>Gold listed on the AH</h3><span class="sub">per day, at median prices</span></div><div class="cb">'+
+      (ECONerr?'<div class="empty">Could not load the market history from AHledger right now.</div>':chartBox('econ',{label:'Gold listed per day',pts:daily.map(d=>({x:Date.parse(d.day+'T12:00:00Z'),y:d.value,d})),yFmt:v=>goldShort(v),area:true,
+        empty:ECON?'No daily figures yet.':'Loading…',tip:p=>'<div class="th">'+esc(new Date(p.x).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}))+'</div>'+tipRow(esc(goldShort(p.y)),'gold listed')+tipRow(compact(p.d.auctions),'auctions')+tipRow(nf(p.d.scans),'scans')},200))+'</div></section>'+
+    '<section class="card"><div class="ch"><h3>By item class</h3><span class="sub">share of gold listed</span></div><div class="cb">'+classBars(E)+'</div></section></div>';
+  // movers + most traded
+  const mv=MK.items.filter(x=>x.ch7!=null&&(x.sold||0)>=5&&x.med>=100);
+  const up=mv.slice().sort((a,b)=>b.ch7-a.ch7).slice(0,8),dn=mv.slice().sort((a,b)=>a.ch7-b.ch7).slice(0,8);
+  const top=liquid.slice().sort((a,b)=>b.turn-a.turn).slice(0,8);
+  const mini=(list,f)=>'<ol class="mkl">'+list.map(x=>'<li><a href="#market/item/'+x.id+'">'+mkIcon(x,20)+'<span class="nm q'+x.q+'">'+esc(x.name)+'</span></a><span class="r">'+f(x)+'</span></li>').join('')+'</ol>';
+  h+='<div class="mk-3">'+
+    '<section class="card"><div class="ch"><h3>Rising</h3><span class="sub">vs 7-day median</span></div>'+(up.length?mini(up,x=>pctc(x.ch7)+'<small>'+money(x.med,{short:true})+'</small>'):'<div class="empty">Nothing yet.</div>')+'</section>'+
+    '<section class="card"><div class="ch"><h3>Falling</h3><span class="sub">vs 7-day median</span></div>'+(dn.length?mini(dn,x=>pctc(x.ch7)+'<small>'+money(x.med,{short:true})+'</small>'):'<div class="empty">Nothing yet.</div>')+'</section>'+
+    '<section class="card"><div class="ch"><h3>Most gold traded</h3><span class="sub">per day</span></div>'+mini(top,x=>esc(goldShort(x.turn))+'<small>'+compact(x.sold)+'/day</small>')+'</section></div>'+
+    '<p class="note mk-note">Rising and falling: items that sell at least 5 a day and cost at least 1s. Sold per day is AHledger’s estimate from the last week of scans.</p>';
+  // all items
+  const all=filteredItems(),shown=all.slice(0,MKS.limit);
+  const th=(k,l,cls)=>'<th class="'+(cls||'')+'"><button type="button" data-msort="'+k+'" class="'+(MKS.sort===k?'on':'')+'">'+l+(MKS.sort===k?(MKS.dir<0?' ↓':' ↑'):'')+'</button></th>';
+  h+='<section class="card mk-all"><div class="ch"><h3>All items</h3><span class="sub">'+nf(all.length)+' shown of '+nf(MK.total)+'</span></div>'+
+    '<div class="mk-f"><label class="fld grow"><span>Search</span><input id="mk-q" type="search" placeholder="Item name" value="'+esc(MKS.q)+'" autocomplete="off"></label>'+
+    '<label class="fld"><span>Class</span><select id="mk-cls"><option value="">All classes</option>'+MK.classes.slice().sort().map(c=>'<option'+(c===MKS.cls?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>'+
+    '<label class="fld"><span>Min. sold/day</span><input id="mk-min" type="number" min="0" step="1" value="'+MKS.minSold+'"></label></div>'+
+    '<div class="tw"><table class="tbl mkt"><thead><tr>'+th('name','Item','l')+th('med','Price')+th('ch7','vs 7d')+th('ch30','vs 30d','hide-s')+'<th class="hide-s">30-day range</th>'+th('sold','Sold/day')+th('qty','Listed','hide-s')+th('turn','Traded/day','hide-s')+'</tr></thead><tbody>'+
+    shown.map(x=>'<tr data-item="'+x.id+'"><td class="l"><a href="#market/item/'+x.id+'">'+mkIcon(x)+'<span class="nm q'+x.q+'">'+esc(x.name)+'</span></a><small>'+esc(x.cls||'')+'</small></td><td>'+money(x.med,{short:true})+'</td><td>'+pctc(x.ch7)+'</td><td class="hide-s">'+pctc(x.ch30)+'</td><td class="hide-s">'+rangeBar(x)+'</td><td class="num">'+(x.sold!=null?compact(x.sold):'–')+'</td><td class="num hide-s">'+compact(x.qty)+'</td><td class="hide-s">'+(x.turn!=null?esc(goldShort(x.turn)):'–')+'</td></tr>').join('')+
+    '</tbody></table></div>'+(all.length>shown.length?'<div class="more"><button type="button" class="btn" data-act="mkmore">Show 100 more</button></div>':'')+'</section>';
+  return h;
+}
+function classBars(E){
+  if(!E||!E.classes)return ECONerr?'<div class="empty">Not available right now.</div>':'<div class="loading">Loading…</div>';
+  const cl=E.classes.slice().sort((a,b)=>b.value-a.value),mx=cl[0]?cl[0].value:1;
+  return '<ul class="hb">'+cl.slice(0,9).map(c=>'<li title="'+esc(c.name)+': '+esc(goldShort(c.value))+', '+nf(c.items)+' items"><span class="hl">'+esc(c.name)+'</span><span class="ht"><i style="width:'+(c.value/mx*100).toFixed(1)+'%"></i></span><span class="hv">'+(c.share*100).toFixed(0)+'%</span></li>').join('')+'</ul>';
+}
+
+/* ----- one item ----- */
+function usedIn(id){
+  const out=[];if(!D)return out;
+  PROFS.filter(p=>p.kind==='craft'&&D.profs[p.id]).forEach(p=>{(D.profs[p.id].best||[]).forEach(st=>{
+    if(st[3]===id)out.push([p,st,'made']);else if((st[17]||[]).some(r=>r[0]===id))out.push([p,st,'mats'])})});
+  return out.slice(0,10);
+}
+function viewItem(id){
+  if(!MK)return mkWait();
+  const x=MK.byId.get(id);
+  if(!x)return mkHead('Item #'+id,'This item has no price on this market right now.')+'<p><a href="#market">← Back to the market</a></p>';
+  const range=S.mkRange||'7d',k=id+'|'+range,hh=HIST.get(k);
+  if(!hh||(!hh.data&&!hh.err&&!hh.p))loadHist(id,range).then(()=>{if(S.view==='market'&&S.mkItem===id)render()});
+  const j=hh&&hh.data,L=j&&j.latest,ser=(j&&j.series)||[];
+  const pts=ser.filter(s=>s.median!=null).map(s=>({x:Date.parse(s.t),y:s.median,lo:s.p25,hi:s.p75,s}));
+  const qpts=ser.filter(s=>s.quantity!=null).map(s=>({x:Date.parse(s.t),y:s.quantity,s}));
+  const pf=PF.find(p=>p.id===id);
+  let h='<p class="crumb"><a href="#market">← Market</a></p><div class="ph mk-ih"><div class="ih">'+mkIcon(x,44)+'<div><div class="eyebrow">'+esc(x.cls||'Item')+(x.lvl?' · level '+x.lvl:'')+'</div><h1 class="q'+x.q+'">'+esc(x.name)+'</h1></div></div>'+
+    '<div class="ih-p"><div class="big">'+money(x.med)+'</div><div>'+pctc(x.ch7)+' <span class="muted">vs 7d</span> · '+pctc(x.ch30)+' <span class="muted">vs 30d</span></div></div></div>';
+  h+='<div class="mk-tools"><div class="seg" role="tablist">'+['24h','7d','30d'].map(r=>'<button type="button" data-mrange="'+r+'" class="'+(r===range?'on':'')+'" aria-pressed="'+(r===range)+'">'+r+'</button>').join('')+'</div>'+
+    '<form class="pfadd" data-pfadd="'+id+'"><label class="fld"><span>Quantity</span><input name="qty" type="number" min="1" step="1" value="'+(pf?pf.qty:1)+'"></label><label class="fld"><span>Bought at (g each)</span><input name="buy" type="number" min="0" step="any" placeholder="optional" value="'+(pf&&pf.buy!=null?(pf.buy/10000):'')+'"></label><button class="btn primary" type="submit">'+(pf?'Update portfolio':'Add to portfolio')+'</button></form>'+
+    (j&&j.attribution?'<a class="btn" href="'+esc(typeof j.attribution==='string'?j.attribution:j.attribution.url||'https://ahledger.com')+'" target="_blank" rel="noopener">Open on AHledger ↗</a>':'')+'</div>';
+  h+='<section class="card"><div class="ch"><h3>Price</h3><span class="sub">line: median · band: middle half of listings · '+range+'</span></div><div class="cb">'+
+    (hh&&hh.err?'<div class="empty">Could not load the price history from AHledger ('+esc(hh.err)+').</div>':
+      chartBox('price',{label:'Median price, '+range,pts,yMoney:true,empty:j?'No scans in this range.':'Loading…',
+        tip:p=>tipHead(p.x)+tipRow(money(p.y),'median')+(p.lo!=null?tipRow(money(p.lo,{short:true})+' – '+money(p.hi,{short:true}),'middle half'):'')+(p.s.min!=null?tipRow(money(p.s.min),'lowest'):'')+(p.s.quantity!=null?tipRow(nf(p.s.quantity),'listed'):'')},260))+
+    '</div></section>';
+  h+='<section class="card" style="margin-top:18px"><div class="ch"><h3>Listed</h3><span class="sub">units on the AH · '+range+'</span></div><div class="cb">'+
+    chartBox('qty',{label:'Units listed, '+range,kind:'bars',pts:qpts,yFmt:v=>compact(v),empty:j?'No scans in this range.':'Loading…',tip:p=>tipHead(p.x)+tipRow(nf(p.y),'listed')+(p.s.auctions!=null?tipRow(nf(p.s.auctions),'auctions'):'')},150)+'</div>'+
+    (pts.length?'<details class="tv"><summary>Show as a table</summary><div class="tw"><table class="tbl mkt"><thead><tr><th class="l">Time</th><th>Median</th><th>Lowest</th><th>Middle half</th><th>Listed</th></tr></thead><tbody>'+
+      ser.slice().reverse().map(s=>'<tr><td class="l">'+esc(new Date(s.t).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))+'</td><td>'+money(s.median)+'</td><td>'+money(s.min)+'</td><td>'+money(s.p25,{short:true})+' – '+money(s.p75,{short:true})+'</td><td class="num">'+(s.quantity!=null?nf(s.quantity):'–')+'</td></tr>').join('')+'</tbody></table></div></details>':'')+'</section>';
+  const u=usedIn(id);
+  h+='<div class="grid2" style="margin-top:18px"><section class="card"><div class="ch"><h3>Numbers</h3><span class="sub">'+(L?'scan '+esc(ago(L.observedAt)):'from the price table')+'</span></div><dl class="kv mk-kv">'+
+    '<dt>Lowest listing</dt><dd>'+money(L?L.minBuyout:x.min)+'</dd><dt>Listed</dt><dd>'+nf(L?L.quantity:x.qty)+(L&&L.auctions?' in '+nf(L.auctions)+' auctions':'')+'</dd>'+
+    '<dt>Sold per day</dt><dd>'+(x.sold!=null?'~'+fmt1(j&&j.sales&&j.sales.estimatedPerDay!=null?j.sales.estimatedPerDay:x.sold):'–')+'</dd>'+
+    '<dt>Medians</dt><dd>7d '+money(L?L.median7d:x.m7,{short:true})+' · 30d '+money(L?L.median30d:x.m30,{short:true})+(L&&L.median90d?' · 90d '+money(L.median90d,{short:true}):'')+'</dd>'+
+    '<dt>30-day range</dt><dd>'+money(x.lo,{short:true})+' – '+money(x.hi,{short:true})+'</dd>'+
+    '<dt>After the AH cut</dt><dd>'+money(x.med*(1-cutPct()/100))+' each</dd></dl></section>'+
+    '<section class="card"><div class="ch"><h3>In the routes</h3><span class="sub">'+(u.length?u.length+' steps':'not used')+'</span></div>'+(u.length?'<ul class="mkl">'+u.map(([p,st,how])=>'<li><a href="#'+p.id+'/'+st[0]+'"><span>'+esc(p.name)+' '+st[0]+'–'+st[1]+'</span></a><span class="r">'+(how==='made'?'made: ':'mats for ')+esc(st[2])+'</span></li>').join('')+'</ul>':'<div class="empty">No profession route uses or makes this item.</div>')+'</section></div>';
+  return h;
+}
+
+/* ----- portfolio (kept in this browser) ----- */
+const PFK='wowf-portfolio-v1';
+let PF=(()=>{try{const v=JSON.parse(localStorage.getItem(PFK)||'[]');return Array.isArray(v)?v.filter(p=>p&&+p.id>0&&+p.qty>0).map(p=>({id:+p.id,qty:Math.round(+p.qty),buy:p.buy!=null&&isFinite(+p.buy)?Math.round(+p.buy):null})):[]}catch(e){return []}})();
+function savePF(){try{localStorage.setItem(PFK,JSON.stringify(PF))}catch(e){}}
+let PFS={q:'',hist:null,histKey:'',loading:false};
+function pfRows(){return PF.map(p=>{const x=MK.byId.get(p.id);const med=x?x.med:null;const val=med!=null?p.qty*med:null;
+  return {p,x,med,val,net:val!=null?val*(1-cutPct()/100):null,cost:p.buy!=null?p.buy*p.qty:null,ch7:x?x.ch7:null,ch30:x?x.ch30:null}})}
+function loadPFHist(){
+  const key=PF.map(p=>p.id+'x'+p.qty).join(',');
+  if(PFS.loading||(PFS.hist&&PFS.histKey===key&&Date.now()-PFS.hist.at<300000))return;
+  if(!PF.length){PFS.hist=null;return}
+  PFS.loading=true;
+  const ids=PF.slice(0,30).map(p=>p.id);let i=0;const res={};
+  const next=()=>{if(i>=ids.length)return Promise.resolve();const id=ids[i++];return loadHist(id,'7d').then(o=>{res[id]=o.data?o.data.series||[]:[]}).then(()=>new Promise(r=>setTimeout(r,120))).then(next)};
+  Promise.all([next(),next(),next()]).then(()=>{
+    // hourly timeline; each item carries its last known median forward
+    const ts=new Set();Object.values(res).forEach(s=>s.forEach(b=>ts.add(Date.parse(b.t))));
+    const T=[...ts].sort((a,b)=>a-b);
+    const series=PF.slice(0,30).map(p=>{const s=(res[p.id]||[]).filter(b=>b.median!=null).map(b=>[Date.parse(b.t),b.median]);return {p,s}});
+    const pts=T.map(t=>{let v=0,have=0;series.forEach(({p,s})=>{if(!s.length)return;let m=s[0][1];for(const [bt,bm] of s){if(bt<=t)m=bm;else break}v+=m*p.qty;have++});return {x:t,y:v,n:have}});
+    PFS.hist={at:Date.now(),pts};PFS.histKey=key;
+  }).finally(()=>{PFS.loading=false;if(S.view==='portfolio')render()});
+}
+function viewPortfolio(){
+  if(!MK)return mkWait();
+  loadPFHist();
+  const rows=pfRows(),tot=rows.reduce((s,r)=>s+(r.val||0),0),net=rows.reduce((s,r)=>s+(r.net||0),0);
+  const withCost=rows.filter(r=>r.cost!=null&&r.val!=null),cost=withCost.reduce((s,r)=>s+r.cost,0),valC=withCost.reduce((s,r)=>s+r.net,0);
+  const v7=rows.reduce((s,r)=>s+(r.x&&r.x.m7?r.p.qty*r.x.m7:0),0),c7=v7?tot/v7-1:null;
+  let h=mkHead('Portfolio','What your items are worth on the AH right now – kept in this browser only. <a href="https://ahledger.com" rel="noopener">Prices from AHledger</a>.');
+  h+='<section class="stats mk-stats pf-stats">'+
+    '<div class="stat"><dt>Value</dt><dd>'+money(tot,{short:true})+'</dd><small>at median prices</small></div>'+
+    '<div class="stat"><dt>After the AH cut</dt><dd>'+money(net,{short:true})+'</dd><small>'+cutPct()+'% cut</small></div>'+
+    '<div class="stat"><dt>vs 7-day median</dt><dd>'+(c7!=null?pctc(c7):'–')+'</dd><small>'+money(tot-v7,{sign:true,short:true})+'</small></div>'+
+    '<div class="stat"><dt>Profit / loss</dt><dd>'+(withCost.length?money(valC-cost,{sign:true,short:true}):'–')+'</dd><small>'+(withCost.length?(cost?pctc(valC/cost-1)+' on '+money(cost,{short:true}):''):'add what you paid to see it')+'</small></div>'+
+    '<div class="stat"><dt>Items</dt><dd>'+nf(PF.length)+'</dd><small>'+nf(PF.reduce((s,p)=>s+p.qty,0))+' units</small></div></section>';
+  // add form
+  const q=PFS.q.trim().toLowerCase(),sugg=q.length>=2?MK.items.filter(x=>x.name.toLowerCase().includes(q)).sort((a,b)=>(a.name.toLowerCase().startsWith(q)?0:1)-(b.name.toLowerCase().startsWith(q)?0:1)||(b.turn||0)-(a.turn||0)).slice(0,8):[];
+  h+='<section class="card pf-add"><div class="ch"><h3>Add an item</h3><span class="sub">search, then set how many you have</span></div><div class="mk-f"><label class="fld grow"><span>Item</span><input id="pf-q" type="search" placeholder="e.g. Runecloth" value="'+esc(PFS.q)+'" autocomplete="off"></label></div>'+
+    (sugg.length?'<ul class="mkl pf-s">'+sugg.map(x=>'<li><button type="button" data-pfpick="'+x.id+'">'+mkIcon(x,20)+'<span class="nm q'+x.q+'">'+esc(x.name)+'</span></button><span class="r">'+money(x.med,{short:true})+'</span></li>').join('')+'</ul>':(q.length>=2?'<div class="empty">No item with that name on the AH.</div>':''))+'</section>';
+  if(!PF.length)return h+'<div class="empty" style="margin-top:18px">Your portfolio is empty. Add items above, or from any item page in the market.</div>';
+  // value over time + composition
+  const hp=PFS.hist&&PFS.histKey===PF.map(p=>p.id+'x'+p.qty).join(',')?PFS.hist.pts:null;
+  const comp=rows.filter(r=>r.val).sort((a,b)=>b.val-a.val),mx=comp[0]?comp[0].val:1;
+  h+='<div class="grid2" style="margin-top:18px"><section class="card"><div class="ch"><h3>Value, last 7 days</h3><span class="sub">at each hour’s median</span></div><div class="cb">'+
+    chartBox('pf',{label:'Portfolio value, 7 days',pts:hp||[],yFmt:v=>goldShort(v),area:true,empty:PFS.loading||!hp?'Loading the price history…':'No history yet.',tip:p=>tipHead(p.x)+tipRow(money(p.y,{short:true}),'value')},220)+'</div></section>'+
+    '<section class="card"><div class="ch"><h3>What it is made of</h3><span class="sub">share of value</span></div><ul class="hb">'+comp.slice(0,9).map(r=>'<li title="'+esc(r.x?r.x.name:'')+'"><span class="hl">'+esc(r.x?r.x.name:'Item #'+r.p.id)+'</span><span class="ht"><i style="width:'+(r.val/mx*100).toFixed(1)+'%"></i></span><span class="hv">'+(tot?(r.val/tot*100).toFixed(0):0)+'%</span></li>').join('')+'</ul></section></div>';
+  // holdings
+  h+='<section class="card"><div class="ch"><h3>Holdings</h3><span class="sub">edit quantity and price in place</span></div><div class="tw"><table class="tbl mkt pf-t"><thead><tr><th class="l">Item</th><th>Qty</th><th>Price</th><th>vs 7d</th><th>Value</th><th class="hide-s">Bought at</th><th>P/L</th><th></th></tr></thead><tbody>'+
+    rows.map((r,i)=>{const pl=r.cost!=null&&r.net!=null?r.net-r.cost:null;
+      return '<tr><td class="l">'+(r.x?'<a href="#market/item/'+r.p.id+'">'+mkIcon(r.x)+'<span class="nm q'+r.x.q+'">'+esc(r.x.name)+'</span></a>':'Item #'+r.p.id+' <small>no price now</small>')+'</td>'+
+        '<td><input class="pfin" type="number" min="1" step="1" value="'+r.p.qty+'" data-pfqty="'+i+'" aria-label="Quantity"></td><td>'+money(r.med,{short:true})+'</td><td>'+pctc(r.ch7)+'</td><td>'+money(r.val,{short:true})+'</td>'+
+        '<td class="hide-s"><input class="pfin" type="number" min="0" step="any" placeholder="g each" value="'+(r.p.buy!=null?r.p.buy/10000:'')+'" data-pfbuy="'+i+'" aria-label="Bought at, gold each"></td>'+
+        '<td>'+(pl!=null?money(pl,{sign:true,short:true})+'<small>'+pctc(r.cost?r.net/r.cost-1:null)+'</small>':'<span class="m none">–</span>')+'</td><td><button type="button" class="btn sm" data-pfdel="'+i+'" aria-label="Remove">×</button></td></tr>'}).join('')+
+    '</tbody></table></div><p class="note">Profit/loss compares what you paid with what you would get after the AH cut. Value uses each item’s current median on the AH.</p></section>';
+  return h;
+}
+function pfSet(id,qty,buy){
+  id=+id;qty=Math.max(1,Math.round(+qty||1));buy=buy===''||buy==null||!isFinite(+buy)?null:Math.round(+buy*10000);
+  const i=PF.findIndex(p=>p.id===id);if(i>=0)PF[i]={id,qty,buy};else PF.push({id,qty,buy});savePF();
+}
+// events for the market pages
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.msort){const k=t.dataset.msort;if(MKS.sort===k)MKS.dir*=-1;else{MKS.sort=k;MKS.dir=k==='name'?1:-1}MKS.limit=100;render();return}
+  if(t.dataset.act==='mkmore'){MKS.limit+=100;render();return}
+  if(t.dataset.mrange){S.mkRange=t.dataset.mrange;save();render();return}
+  if(t.dataset.pfpick){pfSet(t.dataset.pfpick,1,null);PFS.q='';render();toast('Added – set the quantity below');return}
+  if(t.dataset.pfdel!=null){PF.splice(+t.dataset.pfdel,1);savePF();render();return}
+});
+document.addEventListener('submit',e=>{const f=e.target.closest('form[data-pfadd]');if(!f)return;e.preventDefault();pfSet(f.dataset.pfadd,f.qty.value,f.buy.value);render();toast('Saved in your portfolio')});
+let mkT;
+document.addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='mk-q'){const v=e.target.value;clearTimeout(mkT);mkT=setTimeout(()=>{MKS.q=v;MKS.limit=100;render('mk-q')},200);return}
+  if(id==='mk-min'){const v=e.target.value;if(v==='')return;clearTimeout(mkT);mkT=setTimeout(()=>{MKS.minSold=Math.max(0,+v||0);MKS.limit=100;render('mk-min')},300);return}
+  if(id==='pf-q'){const v=e.target.value;clearTimeout(mkT);mkT=setTimeout(()=>{PFS.q=v;render('pf-q')},150);return}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='mk-cls'){MKS.cls=t.value;MKS.limit=100;render('mk-cls');return}
+  if(t.dataset.pfqty!=null){const p=PF[+t.dataset.pfqty];if(p){pfSet(p.id,t.value,p.buy!=null?p.buy/10000:null);render()}return}
+  if(t.dataset.pfbuy!=null){const p=PF[+t.dataset.pfbuy];if(p){pfSet(p.id,p.qty,t.value);render()}return}
+});
+// keep the market fresh while it is open (the server re-reads AHledger every 30 minutes)
+setInterval(()=>{if(inMarket()&&!document.hidden)loadMarket()},5*60000);
+
 applyTheme();route();renderRail();updateChip();
 main.innerHTML='<div class="loading">Loading fresh AH prices…</div>';
 let pollT;

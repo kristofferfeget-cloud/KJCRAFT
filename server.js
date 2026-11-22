@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SLUGS, EXTRA_IDS, buildRecipes, neededIds, compute, normSrc } from './src/model.js';
-import { fetchSeemeta, fetchPrices, fetchPriceTable } from './src/sources.js';
+import { fetchSeemeta, fetchPrices, fetchPriceTable, fetchCatalog, hasKey } from './src/sources.js';
 import { buildDataLua, buildZip } from './src/addon.js';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -27,7 +27,8 @@ const state = {
   payload: null, body: null, gz: null, etag: null,
   raw: null, variants: new Map(),
   recipes: null, recipesAt: 0, recipesMeta: null,
-  lastOk: null, lastError: null, lastAttempt: null, lastDurationMs: null, running: false, nextAt: null
+  lastOk: null, lastError: null, lastAttempt: null, lastDurationMs: null, running: false, nextAt: null,
+  table: null, catalog: {}, catalogRunning: false, market: null
 };
 
 function pack(p) {
@@ -111,6 +112,8 @@ async function boot() {
   if (rc && rc.recipes) { state.recipes = rc.recipes; state.recipesAt = rc.at || 0; state.recipesMeta = rc.meta || null; }
   const pt = await readJSON(path.join(CACHE_DIR, 'pricetable.json'));
   if (pt && Array.isArray(pt.rows)) state.table = pt;
+  const cat = await readJSON(path.join(CACHE_DIR, 'catalog.json'));
+  if (cat && cat.items) state.catalog = cat.items;
 }
 
 async function refresh() {
@@ -148,6 +151,7 @@ async function refresh() {
       const t = await fetchPriceTable(MARKET, state.table && state.table.etag);
       if (!t.notModified) { state.table = t; await writeJSON(path.join(CACHE_DIR, 'pricetable.json'), t); }
     } catch (e) { log('price table failed:', e.message); }
+    fillCatalog(names);
     log(`refresh ok: ${priced}/${ids.length} priced in ${requests} requests, scan ${scannedAt}${gaps.length ? ', gaps in ' + gaps.join(',') : ''}`);
   } catch (e) {
     state.lastError = String((e && e.message) || e);
@@ -156,6 +160,58 @@ async function refresh() {
     state.running = false;
     state.lastDurationMs = Date.now() - t0;
   }
+}
+
+// ---------- market overview ----------
+const CATALOG_MAX_AGE = 14 * 24 * 3600e3;
+const ICON_BASE = 'https://render.worldofwarcraft.com/classic1x-us/icons/56/';
+// names, quality, class and icon for every item on the market: filled in the background, a few batches at a time
+async function fillCatalog(known) {
+  if (state.catalogRunning || !state.table) return;
+  state.catalogRunning = true;
+  try {
+    const now = Date.now();
+    const ids = state.table.rows.map((r) => r[0]).filter((id) => { const c = state.catalog[id]; return !c || now - (c[5] || 0) > CATALOG_MAX_AGE; });
+    if (!ids.length) return;
+    let saved = 0;
+    const got = await fetchCatalog(MARKET, ids, {
+      delayMs: hasKey() ? 400 : 2200, maxBatches: 80,
+      onBatch: async (part) => {
+        Object.assign(state.catalog, part);
+        state.marketCache = null;
+        if (++saved % 10 === 0) await writeJSON(path.join(CACHE_DIR, 'catalog.json'), { items: state.catalog });
+      }
+    });
+    Object.assign(state.catalog, got);
+    state.marketCache = null;
+    await writeJSON(path.join(CACHE_DIR, 'catalog.json'), { items: state.catalog });
+    log(`catalog: ${Object.keys(got).length} items updated, ${Object.keys(state.catalog).length} known`);
+  } catch (e) {
+    log('catalog failed:', e.message);
+  } finally {
+    state.catalogRunning = false;
+  }
+}
+
+// every item on the market with its prices: [id, name, quality, class, icon, level, median, min, listed, med7, med30, low30, high30, soldPerDay]
+function marketBody() {
+  const t = state.table;
+  if (!t) return null;
+  if (state.marketCache && state.marketCache.ts === t.ts) return state.marketCache;
+  const classes = [], clsIdx = new Map();
+  const items = t.rows.map(([id, median, sold10, qty, min, m7, m30, lo, hi]) => {
+    const c = state.catalog[id] || [];
+    let ci = -1;
+    if (c[2]) { if (!clsIdx.has(c[2])) { clsIdx.set(c[2], classes.length); classes.push(c[2]); } ci = clsIdx.get(c[2]); }
+    const icon = c[3] ? (c[3].startsWith(ICON_BASE) ? c[3].slice(ICON_BASE.length).replace(/\.jpg$/, '') : c[3]) : null;
+    return [id, c[0] || null, c[1] ?? 1, ci, icon, c[4] ?? null, median, min, qty, m7, m30, lo, hi, sold10 == null ? null : sold10 / 10];
+  });
+  const named = items.filter((x) => x[1]).length;
+  const obj = { market: (state.payload && state.payload.market) || 'Normal Alliance EU', marketId: MARKET, scannedAt: new Date(t.ts * 1000).toISOString(),
+    generatedAt: new Date().toISOString(), iconBase: ICON_BASE, ahApi: process.env.AHLEDGER_BASE || 'https://api.ahledger.com', classes, named, total: items.length, catalogFilling: state.catalogRunning, items };
+  const body = Buffer.from(JSON.stringify(obj));
+  state.marketCache = { ts: t.ts, body, gz: gzipSync(body), etag: '"m-' + t.ts + '-' + named + '"' };
+  return state.marketCache;
 }
 
 // ---------- addon downloads ----------
@@ -242,6 +298,11 @@ const server = http.createServer((req, res) => {
     });
   }
   if (url.pathname === '/health') return sendJSON(req, res, 200, { ok: true });
+  if (url.pathname === '/api/market') {
+    const m = marketBody();
+    if (!m) return sendJSON(req, res, 503, { error: 'Market data is not ready yet' });
+    return send(req, res, 200, { body: m.body, gz: m.gz, etag: m.etag, type: TYPES['.json'], extra: { 'access-control-allow-origin': '*' } });
+  }
   if (url.pathname === '/addon/Data.lua' || url.pathname === '/addon/CraftPath.zip') {
     if (!state.payload) return sendJSON(req, res, 503, { error: 'Data is not ready yet' });
     const zip = url.pathname.endsWith('.zip');
