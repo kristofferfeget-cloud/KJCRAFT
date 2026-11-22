@@ -175,7 +175,8 @@ async function fillCatalog(known) {
     if (!ids.length) return;
     let saved = 0;
     const got = await fetchCatalog(MARKET, ids, {
-      delayMs: hasKey() ? 400 : 2200, maxBatches: 80,
+      // no key: 300 requests a minute until 10 Dec 2026, then 30 – stay well under either
+      delayMs: hasKey() ? 400 : (Date.now() < Date.parse('2026-12-10T00:00:00Z') ? 700 : 2400), maxBatches: 80,
       onBatch: async (part) => {
         Object.assign(state.catalog, part);
         state.marketCache = null;
