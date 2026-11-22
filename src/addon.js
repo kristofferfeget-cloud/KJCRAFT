@@ -109,6 +109,8 @@ export function buildDataLua(payload, baseUrl, table) {
   L.push(`R.quality = ${idMap(quality, (q) => String(q))}`);
   L.push(`R.price = ${idMap(payload.prices || {}, (p) => luaVal([p[0], p[1], p[2] ?? null, p[3] ?? null]))}`);
   L.push(`R.bolts = ${idMap(BOLTS, luaVal)}`);
+  // mats that are cheaper to make yourself: [id] = {yield, {{reagentID, qty}, ...}}
+  L.push(`R.crafts = ${idMap(payload.crafts || {}, (c) => luaVal([c[0], c[1]]))}`);
   // every priced item on the market for the tooltips: [id] = {median, soldPerDay*10, listed} (copper)
   L.push(`R.ahTs = ${table && table.ts ? table.ts : 0}`);
   L.push('R.ah = {');

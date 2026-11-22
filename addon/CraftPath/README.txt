@@ -1,4 +1,4 @@
-CraftPath 2.1 – levelling routes 1-300 for every profession in WoW: Forever
+CraftPath 2.2 – levelling routes 1-300 for every profession in WoW: Forever
 ==========================================================================
 
 What it does
@@ -18,8 +18,16 @@ Where the numbers come from
   30 minutes, with the market filters you chose there). They live in Data.lua.
 - WoW addons cannot go online, so the data is only as fresh as your Data.lua. The footer
   shows how old the AH scan is.
-- If Auctionator is installed and has scanned the AH, its prices are used for mats too
-  ("Live: on").
+- With Auctionator: prices from your own Auctionator scans are used for mats, sales, gold
+  tips and tooltips while they are fresh (seen today or yesterday; tooltips: today). "Live: on".
+- At the auction house, CraftPath shows two buttons (Auctionator needed):
+  Scan     searches every mat and product left in your route (and the gold tips) in
+           Auctionator's Shopping tab, so CraftPath has exact prices for today.
+  To list  puts the mats for the current step and the two after it in an Auctionator
+           shopping list ("CraftPath <profession>"), minus what you have in bags and bank,
+           with crafted mats (bolts, ...) broken down into what you buy.
+  The route itself still comes from the website; your scan changes the costs and profits
+  shown in the addon, not which recipes the route uses.
 
 Keeping the data fresh
 - Easiest: run the updater from the website once ("Get the addon" > "Auto-update"). It
@@ -38,6 +46,8 @@ Commands
 - /cpath web        link to this route on the website
 - /cpath tooltip    AH price and AH-or-vendor advice on item tooltips (on/off)
 - /cpath live       turn Auctionator prices on or off
+- /cpath scan       at the AH: scan your route's items in Auctionator
+- /cpath list       Auctionator shopping list (/cpath list 225 = mats up to skill 225)
 - /cpath scale 1.1  window size,  /cpath reset  move windows back
 
 Prices from AHledger (ahledger.com). Recipes: seemeta and Warcraft Wiki.

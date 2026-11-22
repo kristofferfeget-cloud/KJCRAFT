@@ -439,6 +439,16 @@ function UI:Build()
   self.webBtn:SetScript("OnClick", function() UI:ShowLink() end)
   self.webBtn.tip = { "Website", "Get a link to this route on the website, with live prices, filters and the shopping list." }
   self.footer:SetPoint("RIGHT", self.webBtn, "LEFT", -8, 0)
+  -- Auctionator buttons (only at the auction house)
+  self.listBtn = FlatButton(f, 52, 18, "To list", 9.5)
+  self.listBtn:SetPoint("RIGHT", self.webBtn, "LEFT", -6, 0)
+  self.listBtn:SetScript("OnClick", function() if ns.ShoppingList then ns.ShoppingList(UI.tab) end end)
+  self.listBtn.tip = { "Shopping list", "Puts the mats for the current step and the two after it in an Auctionator shopping list, minus what you have in bags and bank. /cpath list 225 goes to a skill of your choice." }
+  self.scanBtn = FlatButton(f, 46, 18, "Scan", 9.5)
+  self.scanBtn:SetPoint("RIGHT", self.listBtn, "LEFT", -6, 0)
+  self.scanBtn:SetScript("OnClick", function() if ns.ScanRoute then ns.ScanRoute(UI.tab) end end)
+  self.scanBtn.tip = { "Scan prices", "Searches the AH in Auctionator for every mat and product left in this route (and the gold tips). CraftPath then uses those exact prices for today." }
+  self.listBtn:Hide(); self.scanBtn:Hide()
 
   f:SetScript("OnShow", function() UI:Refresh(true) end)
   self:ApplyScale()
@@ -1540,6 +1550,10 @@ function UI:Refresh(scrollToCurrent)
   local ageCol = (age and age > 3 * 3600) and Hex({ 1, 0.62, 0.3 }) or ""
   self.footer:SetText(format("%s  ·  %s  ·  %sAH scan %s%s", R.source or "AHledger", R.market or "", ageCol, ns.AgeText(age), ageCol ~= "" and "|r" or "") .. (live and "  ·  + Auctionator" or ""))
   self.webBtn:SetActive(false, accent)
+  local atAH = ns.ahOpen and ns.HasAuctionator and ns.HasAuctionator()
+  if atAH then self.scanBtn:Show(); self.listBtn:Show() else self.scanBtn:Hide(); self.listBtn:Hide() end
+  self.footer:SetPoint("RIGHT", atAH and self.scanBtn or self.webBtn, "LEFT", -8, 0)
+  if atAH then self.scanBtn:SetActive(true, C.pos) end
 
   if isGold then
     self.profPage:Hide()

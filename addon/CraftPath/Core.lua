@@ -213,6 +213,12 @@ end
 
 local function LivePrice(id)
   if not id or not (ns.db and ns.db.livePrices) then return nil end
+  -- Auctionator prices only count while they are fresh (seen today or yesterday); older ones lose to the website data
+  if ns.AtrPrice then
+    local p, age = ns.AtrPrice(id)
+    if p and (age == nil or age <= 1) then return p end
+    return nil
+  end
   local api = Auctionator and Auctionator.API and Auctionator.API.v1
   if not (api and api.GetAuctionPriceByItemID) then return nil end
   local ok, v = pcall(api.GetAuctionPriceByItemID, ADDON, id)
@@ -689,6 +695,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
     ns.ScanSkills()
     if ns.InitTooltips then pcall(ns.InitTooltips) end
+    if ns.InitAuctionator then pcall(ns.InitAuctionator) end
     if ns.UI and ns.UI.Init then ns.UI:Init() end
     ns.RequestRefresh(true)
   elseif event == "CHAT_MSG_SKILL" then
@@ -724,6 +731,8 @@ local HELP = {
   "/cpath minimap - show or hide the minimap button",
   "/cpath skill tailoring 152 - set a skill by hand if it is not read automatically",
   "/cpath live - turn live Auctionator prices on or off",
+  "/cpath scan - at the AH: search every item your route needs or makes in Auctionator, for exact prices",
+  "/cpath list or /cpath list 225 - put the mats you still need (to that skill) in an Auctionator shopping list",
   "/cpath data - how old the price data is and how to update it",
   "/cpath gold auto, /cpath gold 150 or /cpath gold off - plan the route for your gold (auto = what you carry)",
   "/cpath sales - also count AH sales as you go when planning for your gold (on/off)",
@@ -785,6 +794,10 @@ local function Slash(input)
     Print(R.url or "?")
   elseif cmd == "web" then
     UI:ShowLink()
+  elseif cmd == "scan" then
+    if ns.ScanRoute then ns.ScanRoute() end
+  elseif cmd == "list" or cmd == "shop" then
+    if ns.ShoppingList then ns.ShoppingList(nil, tonumber(rest)) end
   elseif cmd == "tooltip" or cmd == "tooltips" then
     ns.db.tooltip = not (ns.db.tooltip ~= false)
     Print(ns.db.tooltip and "AH prices on item tooltips are on." or "AH prices on item tooltips are off.")

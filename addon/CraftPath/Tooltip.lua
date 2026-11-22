@@ -11,6 +11,13 @@ local function R() return ns.RAW or {} end
 
 -- AH data for one item: median (copper per unit), sold per day (or nil), listed (or nil), scan time (unix, or nil)
 local function AHData(id)
+  -- volume (sold per day, listed) always comes from the market data; the price from your own scan when it is from today
+  local d0 = R()
+  local row0 = d0.ah and d0.ah[id]
+  if ns.db and ns.db.livePrices ~= false and ns.AtrPrice then
+    local p, age = ns.AtrPrice(id)
+    if p and age == 0 then return p, row0 and row0[2] and row0[2] / 10 or nil, row0 and row0[3], ns.Now(), "scan" end
+  end
   local api, apiP = AHledgerAPI, nil
   if api and type(api.GetPrice) == "function" then
     local ok, p = pcall(api.GetPrice, id)
@@ -33,10 +40,10 @@ ns.AHData = AHData
 
 -- the verdict for one unit: "ah" / "slow" / "vendor", AH value after the cut, vendor price
 function ns.SellAdvice(id)
-  local median, sold, listed, ts = AHData(id)
+  local median, sold, listed, ts, src = AHData(id)
   local vendor, quality, bindType = 0, 1, 0
-  if GetItemInfo then
-    local _, _, q, _, _, _, _, _, _, _, sell, _, _, bind = GetItemInfo(id)
+  if ns.ItemInfo then
+    local _, _, q, _, _, _, _, _, _, _, sell, _, _, bind = ns.ItemInfo(id)
     vendor, quality, bindType = sell or 0, q or 1, bind or 0
   end
   if not median then return nil end
@@ -47,7 +54,7 @@ function ns.SellAdvice(id)
   if vendor > 0 and vendor >= net then verdict = "vendor"
   elseif sold and sold < minSold then verdict = "slow"
   else verdict = "ah" end
-  return { verdict = verdict, median = median, net = net, vendor = vendor, sold = sold, listed = listed, ts = ts, quality = quality }
+  return { verdict = verdict, median = median, net = net, vendor = vendor, sold = sold, listed = listed, ts = ts, quality = quality, src = src }
 end
 
 local function AgeSuffix(ts)
@@ -88,10 +95,11 @@ local function OnItem(tt, data)
     local market = {}
     if a.sold then market[#market + 1] = (a.sold < 10 and format("%.1f", a.sold) or format("%d", floor(a.sold + 0.5))) .. "/day" end
     if a.listed then market[#market + 1] = a.listed .. " listed" end
+    if a.src == "scan" then table.insert(market, 1, C_GOOD .. "your scan today|r" .. C_MUTE) end
     tt:AddDoubleLine(C_ACC .. "AH|r " .. C_MUTE .. table.concat(market, " · ") .. "|r", ns.Money(a.median), 1, 1, 1, 1, 1, 1)
   end
   tt:AddDoubleLine(VerdictText(a), a.vendor > 0 and (C_MUTE .. "vendor |r" .. ns.Money(a.vendor)) or "", 1, 1, 1, 1, 1, 1)
-  if ahl ~= true then tt:AddLine(C_MUTE .. CREDIT .. "|r" .. AgeSuffix(a.ts), 1, 1, 1) end
+  if ahl ~= true then tt:AddLine(C_MUTE .. (a.src == "scan" and "Price: your Auctionator scan · volume: AHledger (ahledger.com)" or CREDIT) .. "|r" .. AgeSuffix(a.ts), 1, 1, 1) end
   tt:Show()
 end
 

@@ -159,7 +159,7 @@ async function refresh() {
 }
 
 // ---------- addon downloads ----------
-const ADDON_FILES = ['CraftPath.toc', 'Core.lua', 'UI.lua', 'Tooltip.lua', 'README.txt'];
+const ADDON_FILES = ['CraftPath.toc', 'Core.lua', 'UI.lua', 'Tooltip.lua', 'AHScan.lua', 'README.txt'];
 const addonSrc = {};
 const scripts = {};
 const addonCache = new Map();
